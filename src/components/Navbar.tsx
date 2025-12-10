@@ -114,9 +114,8 @@ export default function FullNavbar() {
     <>
       {/* ---------------------------- NAVBAR ---------------------------- */}
       <header
-        className={`bg-white border-b border-gray-200 sticky top-0 z-50 transition-shadow duration-300 ${
-          isScrolled ? "shadow-md" : ""
-        }`}
+        className={`bg-white border-b border-gray-200 sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? "shadow-md" : ""
+          }`}
       >
         {/* DESKTOP NAVBAR */}
         <div className="hidden md:flex max-w-7xl mx-auto px-4 py-3 items-center gap-6">
@@ -242,60 +241,60 @@ export default function FullNavbar() {
         </div>
 
         {/* ------------------ MOBILE NAVBAR ------------------ */}
-<div className="flex md:hidden items-center justify-between px-4 py-3 bg-white border-b shadow-sm sticky top-0 z-50">
+        <div className="flex md:hidden items-center justify-between px-4 py-3 bg-white border-b shadow-sm sticky top-0 z-50">
 
-  {/* LOGO */}
-  <Link href="/site" className="flex items-center gap-2">
-    <div className="w-12 h-12 relative">
-      <Image
-        src="/logoInstaFit.jpg"
-        alt="InstaFitCore Logo"
-        fill
-        className="object-contain"
-      />
-    </div>
-    <span className="font-bold text-lg" style={{ color: "#8ed26b" }}>
-      INSTAFITCORE
-    </span>
-  </Link>
+          {/* LOGO */}
+          <Link href="/site" className="flex items-center gap-2">
+            <div className="w-12 h-12 relative">
+              <Image
+                src="/logoInstaFit.jpg"
+                alt="InstaFitCore Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <span className="font-bold text-lg" style={{ color: "#8ed26b" }}>
+              INSTAFITCORE
+            </span>
+          </Link>
 
-  {/* RIGHT ICONS */}
-  <div className="flex items-center gap-4">
+          {/* RIGHT ICONS */}
+          <div className="flex items-center gap-4">
 
-    {/* Wishlist */}
-    {user && (
-      <Link href="/site/wishlist" className="relative p-2 rounded-full hover:bg-gray-100 transition">
-        <Heart className="w-6 h-6 text-gray-700" />
-        {wishlistCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-            {wishlistCount}
-          </span>
-        )}
-      </Link>
-    )}
+            {/* Wishlist */}
+            {user && (
+              <Link href="/site/wishlist" className="relative p-2 rounded-full hover:bg-gray-100 transition">
+                <Heart className="w-6 h-6 text-gray-700" />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
-    {/* Cart */}
-    {user && (
-      <Link href="/site/cart" className="relative p-2 rounded-full hover:bg-gray-100 transition">
-        <ShoppingCart className="w-6 h-6 text-gray-700" />
-        {cartCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
-            {cartCount}
-          </span>
-        )}
-      </Link>
-    )}
+            {/* Cart */}
+            {user && (
+              <Link href="/site/cart" className="relative p-2 rounded-full hover:bg-gray-100 transition">
+                <ShoppingCart className="w-6 h-6 text-gray-700" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
-    {/* Mobile Menu Button */}
-    <button
-      onClick={() => setMobileOpen(true)}
-      className="p-2 rounded-full hover:bg-gray-100 transition"
-      aria-label="Open menu"
-    >
-      <Menu className="w-6 h-6 text-gray-700" />
-    </button>
-  </div>
-</div>
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="p-2 rounded-full hover:bg-gray-100 transition"
+              aria-label="Open menu"
+            >
+              <Menu className="w-6 h-6 text-gray-700" />
+            </button>
+          </div>
+        </div>
 
 
         {/* MOBILE DRAWER */}
@@ -307,9 +306,8 @@ export default function FullNavbar() {
         )}
 
         <div
-          className={`fixed top-0 right-0 h-full w-3/4 bg-white z-50 shadow-xl transition-transform duration-300 ${
-            mobileOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+          className={`fixed top-0 right-0 h-full w-3/4 bg-white z-50 shadow-xl transition-transform duration-300 ${mobileOpen ? "translate-x-0" : "translate-x-full"
+            }`}
         >
           {/* Drawer Header */}
           <div className="flex justify-between px-4 py-4 border-b">
@@ -360,23 +358,44 @@ export default function FullNavbar() {
 
           {/* Bottom Icons */}
           {user && (
-            <div className="mt-8 px-6 flex justify-between border-t pt-4">
-              <Link href="/site/profile"><UserIcon /></Link>
-              <Link href="/site/order-tracking"><MapPin /></Link>
+            <div className="mt-8 px-6 flex flex-col gap-4 border-t pt-4">
+
+              <Link
+                href="/site/profile"
+                onClick={() => setMobileOpen(false)}
+                className="text-gray-800 text-base font-medium"
+              >
+                Profile
+              </Link>
+
+              <Link
+                href="/site/order-tracking"
+                onClick={() => setMobileOpen(false)}
+                className="text-gray-800 text-base font-medium"
+              >
+                Order Tracking
+              </Link>
+
             </div>
           )}
+
+
         </div>
       </header>
 
       {/* Category carousel only on homepage */}
-       {pathname === "/site" && (
-          <div className="bg-gray-50 border-t border-gray-200">
-            <div className="max-w-7xl mx-auto px-4 py-6 overflow-x-auto">
-              <div className="flex gap-12 justify-center min-w-max">
-                {loadingCategories ? (
-                  <div className="text-center text-gray-500">Loading categories...</div>
-                ) : (
-                  categories.map((cat) => (
+      {pathname === "/site" && (
+        <div className="sticky top-[72px] z-40 bg-gray-50 border-t border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 py-6 overflow-x-auto">
+            <div className="flex gap-12 justify-center min-w-max">
+              {loadingCategories ? (
+                <div className="text-center text-gray-500">Loading categories...</div>
+              ) : (
+                categories
+                  .filter((cat) =>
+                    cat.category.toLowerCase().includes(search.toLowerCase())
+                  )
+                  .map((cat) => (
                     <Link
                       key={cat.id}
                       href={`/site/category/${cat.id}`}
@@ -398,11 +417,12 @@ export default function FullNavbar() {
                       </p>
                     </Link>
                   ))
-                )}
-              </div>
+              )}
+
             </div>
           </div>
-        )}
+        </div>
+      )}
 
       {/* Auth Modal */}
       <AuthModal

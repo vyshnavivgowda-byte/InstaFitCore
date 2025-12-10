@@ -5,27 +5,29 @@ import { supabase } from "@/lib/supabase-client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
+import AddressForm, { AddressFields } from "@/components/AddressForm";
 import {
     ShoppingCart,
     X,
     Plus,
     Minus,
-    DollarSign,
+    IndianRupee,
     Loader2,
     Package,
     ChevronRight,
     AlertTriangle,
     Info,
+    MapPin, // Icon for Address
 } from "lucide-react";
 
 // --- Styling ---
-const PRIMARY_COLOR = "#8ED26B";
-const ACCENT_COLOR = "#059669";
-const LIGHT_BG = "#f5f7fa";
-const CARD_BG = "#ffffff";
-const BORDER_COLOR = "#e6f6dc";
+const PRIMARY_COLOR = "#8ED26B"; // A vibrant green
+const ACCENT_COLOR = "#059669"; // Darker green for emphasis
+const LIGHT_BG = "#f5f7fa"; // Light background for the page
+const CARD_BG = "#ffffff"; // White for card backgrounds
+const BORDER_COLOR = "#e6f6dc"; // Very light green for subtle borders/summary background
 
-// --- Types ---
+// --- Types (Kept as is) ---
 type ServiceType = "installation" | "dismantling" | "repair";
 
 type ServiceDetails = {
@@ -48,7 +50,15 @@ type CartItem = {
     isUpdating: boolean;
 };
 
-// --- Helpers ---
+const SERVICEABLE_PINCODES = [
+    "560091", "560037", "560016", "560065", "560024", "560094", "560092",
+    "560001", "560051", "560025", "560030", "560002", "560060", "560059",
+    "560034", "560018", "560068", "560099", "560062", "560070", "560098",
+    "560088", "560054", "560022", "560010", "560079", "560055", "560072",
+    "560003", "560004", "560083"
+];
+
+// --- Helpers (Kept as is) ---
 const calculateUnitServicePrice = (
     service: ServiceDetails | null,
     selectedServices: ServiceType[] | null
@@ -61,7 +71,6 @@ const calculateUnitServicePrice = (
     return totalPrice;
 };
 
-// idempotent Razorpay loader
 const loadRazorpay = (): Promise<void> =>
     new Promise((resolve, reject) => {
         const scriptId = "razorpay-js";
@@ -75,7 +84,7 @@ const loadRazorpay = (): Promise<void> =>
         document.body.appendChild(script);
     });
 
-// ---------------- CartItemCard ----------------
+// ---------------- CartItemCard (Kept as is for functionality) ----------------
 const CartItemCard: React.FC<{
     item: CartItem;
     onUpdateQuantity: (id: number, newQuantity: number) => void;
@@ -114,7 +123,7 @@ const CartItemCard: React.FC<{
 
     return (
         <div
-            className="flex flex-col p-4 sm:p-6 bg-white rounded-2xl shadow-xl border-l-4 transition-all duration-300 hover:shadow-2xl relative"
+            className="flex flex-col p-4 sm:p-6 bg-white rounded-2xl shadow-xl border-l-4 transition-all duration-300 relative h-full"
             style={{ borderLeftColor: isServiceMissing ? "#f59e0b" : PRIMARY_COLOR }}
         >
             <button
@@ -210,9 +219,16 @@ export default function CartPage() {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [address, setAddress] = useState("");
     const { toast } = useToast();
     const router = useRouter();
+    const [isPincodeValid, setIsPincodeValid] = useState(true);
+    const [addressErrors, setAddressErrors] = useState<{ [key: string]: string }>({});
+    const [submitAttempted, setSubmitAttempted] = useState(false);
+
+    const [addressFields, setAddressFields] = useState<AddressFields>({
+        customer_name: "", mobile: "", alternate_mobile: "", flat_no: "", floor: "",
+        building_name: "", street: "", area_zone: "", landmark: "", city: "", state: "", pincode: "",
+    });
 
     const fetchCartItems = useCallback(async () => {
         setLoading(true);
@@ -281,7 +297,39 @@ export default function CartPage() {
         }, 0);
     }, [cartItems]);
 
-    // update functions
+    const validateAddress = (f: AddressFields) => {
+        const errors: { [key: string]: string } = {};
+
+        if (!f.customer_name?.trim()) errors.customer_name = "Customer name is required.";
+        if (!f.mobile || f.mobile.replace(/\D/g, "").length < 10) errors.mobile = "Valid 10-digit mobile number is required.";
+        if (!f.flat_no?.trim()) errors.flat_no = "Flat / House / Plot No is required.";
+        if (!f.street?.trim()) errors.street = "Street / Locality is required.";
+        if (!f.city?.trim()) errors.city = "City / Town is required.";
+        if (!f.state?.trim()) errors.state = "State is required.";
+
+        const pincode = f.pincode?.trim();
+        if (pincode) {
+            if (!/^\d{6}$/.test(pincode)) {
+                errors.pincode = "Must be 6 digits.";
+            } else if (!SERVICEABLE_PINCODES.includes(pincode)) {
+                errors.pincode = "Service not available in this pincode.";
+            }
+        } else {
+            errors.pincode = "Pincode is required.";
+        }
+
+        return errors;
+    };
+
+
+    useEffect(() => {
+        const errors = validateAddress(addressFields);
+        setAddressErrors(errors);
+        const pincode = addressFields.pincode.replace(/\D/g, "");
+        setIsPincodeValid(!!pincode && SERVICEABLE_PINCODES.includes(pincode));
+    }, [addressFields]);
+
+    // Update functions (kept as is)
     const handleUpdateSelectedServices = useCallback(
         async (itemId: number, newSelections: ServiceType[]) => {
             setCartItems((prev) => prev.map((it) => (it.id === itemId ? { ...it, isUpdating: true } : it)));
@@ -330,19 +378,23 @@ export default function CartPage() {
 
     // ------------------ Checkout: ONE payment for entire cart ------------------
     const handleCheckout = useCallback(async () => {
+        setSubmitAttempted(true);
+
         if (cartItems.length === 0) {
             toast({ title: "Cart empty", description: "Add items before checkout.", variant: "destructive" });
             return;
         }
 
-        if (!address || address.trim().length < 5) {
-            toast({ title: "Address required", description: "Please enter a valid address.", variant: "destructive" });
+        const errors = validateAddress(addressFields);
+        if (Object.keys(errors).length > 0) {
+            setAddressErrors(errors);
+            toast({ title: "Address Error", description: "Please complete and fix the highlighted address fields.", variant: "destructive" });
             return;
         }
 
         const invalid = cartItems.find((it) => !it.service || !it.selected_services?.length);
         if (invalid) {
-            toast({ title: "Selection missing", description: "Please select options for all items.", variant: "destructive" });
+            toast({ title: "Selection missing", description: "Please select service options (e.g., Installation) for all items.", variant: "destructive" });
             return;
         }
 
@@ -357,7 +409,7 @@ export default function CartPage() {
             await loadRazorpay();
 
             const totalAmountPaise = Math.round(cartTotal * 100);
-            if (totalAmountPaise <= 0) throw new Error("Invalid total amount.");
+            if (totalAmountPaise <= 0) throw new Error("Invalid total amount. Total must be greater than ₹0.");
 
             const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
             if (!razorpayKey) throw new Error("Razorpay key not set.");
@@ -368,7 +420,7 @@ export default function CartPage() {
                 currency: "INR",
                 name: "Insta Fit Core",
                 description: `Payment for ${cartItems.length} items`,
-                prefill: { name: user.user_metadata?.full_name || "Customer", email: user.email },
+                prefill: { name: addressFields.customer_name, email: user.email, contact: addressFields.mobile },
                 theme: { color: PRIMARY_COLOR },
                 handler: async (response: any) => {
                     try {
@@ -377,33 +429,64 @@ export default function CartPage() {
                         if (!user) throw new Error("User not logged in");
 
                         const today = new Date();
+
+                        // Build full address string from addressFields
+                        const fullAddress = [
+                            addressFields.flat_no,
+                            addressFields.floor ? `Floor ${addressFields.floor}` : '',
+                            addressFields.building_name,
+                            addressFields.street,
+                            addressFields.area_zone,
+                            addressFields.landmark,
+                            addressFields.city,
+                            addressFields.state,
+                            `${addressFields.pincode}`
+                        ].filter(Boolean).join(", ");
+
                         for (const item of cartItems) {
-                            await supabase.from("bookings").insert([
+                            const unitPrice = calculateUnitServicePrice(item.service, item.selected_services);
+                            const itemTotal = unitPrice * item.quantity;
+
+                            const { error } = await supabase.from("bookings").insert([
                                 {
                                     user_id: user.id,
-                                    customer_name: user.user_metadata?.full_name || "Customer",
-                                    date: today, // or your selected booking date
-                                    booking_time: "10:00", // or your selected time
-                                    service_name: item.service?.service_name,
-                                    service_types: item.selected_services,
-                                    total_price: calculateUnitServicePrice(item.service, item.selected_services) * item.quantity,
-                                    address,
-                                    service_id: item.service_id,
+                                    customer_name: addressFields.customer_name.trim(),
+                                    date: today,
+                                    booking_time: "10:00",
+                                    service_name: item.service?.service_name || "Unknown Service",
+                                    service_types: item.selected_services || [],
+                                    total_price: itemTotal,
+                                    address: fullAddress,
                                     payment_id: response.razorpay_payment_id,
+                                    service_id: item.service_id,
+                                    customer_mobile: addressFields.mobile,
+                                    quantity: item.quantity,
                                 },
                             ]);
+
+                            if (error) {
+                                console.error("Insert error for item:", item.id, error);
+                                throw new Error(`Failed to save booking for ${item.service?.service_name}: ${error.message}`);
+                            }
                         }
 
-                        toast({ title: "Booking Successful", description: "Your bookings have been saved.", variant: "success" });
+                        // Clear cart after successful booking
+                        const { error: deleteError } = await supabase.from("cart_items").delete().eq("user_id", user.id);
+                        if (deleteError) {
+                            console.warn("Failed to clear cart after booking:", deleteError);
+                        }
+
+                        toast({ title: "Booking Successful", description: "Your services have been booked and paid for.", variant: "success" });
                         router.push("/site/order-tracking");
                     } catch (err: any) {
                         console.error("Booking save error:", err);
-                        toast({ title: "Booking Failed", description: err.message || "Please try again.", variant: "destructive" });
+                        toast({ title: "Booking Failed", description: err.message || "Please try again. Payment might have gone through, check order history.", variant: "destructive" });
                     }
                 },
                 modal: {
                     ondismiss: () => {
                         setCartItems((prev) => prev.map((it) => ({ ...it, isUpdating: false })));
+                        setSubmitAttempted(false);
                     }
                 }
             };
@@ -411,18 +494,18 @@ export default function CartPage() {
             const rzp = new (window as any).Razorpay(options);
             rzp.on("payment.failed", (resp: any) => {
                 console.error("Razorpay payment.failed:", resp);
-                toast({ title: "Payment failed", description: resp?.error?.description || "Try again.", variant: "destructive" });
+                toast({ title: "Payment failed", description: resp?.error?.description || "Payment was cancelled or failed. Try again.", variant: "destructive" });
                 setCartItems((prev) => prev.map((it) => ({ ...it, isUpdating: false })));
             });
             rzp.open();
         } catch (err: any) {
             console.error("handleCheckout error:", err);
-            toast({ title: "Checkout Error", description: err?.message || "Checkout failed.", variant: "destructive" });
+            toast({ title: "Checkout Error", description: err?.message || "Checkout failed. Try again.", variant: "destructive" });
             setCartItems((prev) => prev.map((it) => ({ ...it, isUpdating: false })));
         }
-    }, [cartItems, cartTotal, router, toast, address]);
+    }, [cartItems, cartTotal, router, toast, addressFields]);
 
-    // Render states
+    // Render states (loading, error, empty cart) - unchanged
     if (loading)
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center py-20">
@@ -432,9 +515,10 @@ export default function CartPage() {
         );
 
     if (error)
+        if (error)
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center py-20">
-                <div className="p-8 bg-red-50 border border-red-300 text-red-700 rounded-xl flex flex-col items-center shadow-lg max-w-lg mx-auto">
+                <div className="p-8 bg-red-50 border border-red-300 text-red-700 rounded-xl flex flex-col items-center shadow-lg max-w-2xl mx-auto">
                     <AlertTriangle className="w-8 h-8 mb-3" />
                     <span className="text-xl font-bold mb-3">System Error</span>
                     <span className="text-center font-medium">{error}</span>
@@ -466,17 +550,22 @@ export default function CartPage() {
             </div>
         );
 
-    // Main view
+    // Main view (Stacked Layout)
     return (
-        <div className="min-h-screen bg-gray-50 px-4 py-12 sm:py-20">
-            <div className="max-w-6xl mx-auto">
-                <div className="flex items-center bg-white p-4 sm:p-6 sm:p-8 rounded-2xl shadow-xl mb-6 sm:mb-10 border-t-4" style={{ borderColor: PRIMARY_COLOR }}>
-                    <ShoppingCart className={`w-6 h-6 sm:w-8 sm:h-8 sm:w-10 sm:h-10 mr-3 sm:mr-4`} style={{ color: PRIMARY_COLOR }} />
-                    <h1 className="text-2xl sm:text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Shopping Cart ({cartItems.length})</h1>
+        <div className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
+<div className="max-w-6xl mx-auto px-4 py-12 sm:py-16">
+                {/* --- HEADER --- */}
+                <div className="flex items-center bg-white p-4 sm:p-6 lg:p-8 rounded-3xl shadow-2xl mb-6 sm:mb-10 border-t-8" style={{ borderColor: PRIMARY_COLOR }}>
+                    <ShoppingCart className={`w-8 h-8 sm:w-10 sm:h-10 mr-4`} style={{ color: PRIMARY_COLOR }} />
+                    <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Your Service Cart ({cartItems.length})</h1>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-                    <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+                {/* 1. Cart Items - MODIFIED FOR 2 ITEMS PER ROW ON TABLET/DESKTOP */}
+                <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-xl mb-8 border border-gray-100">
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800 border-b-2 pb-2 mb-6" style={{ borderColor: PRIMARY_COLOR }}>
+                        <Package className="w-5 h-5 inline-block mr-2" style={{ color: PRIMARY_COLOR }} /> Items in Cart
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {cartItems.map((item) => (
                             <CartItemCard
                                 key={item.id}
@@ -487,61 +576,71 @@ export default function CartPage() {
                             />
                         ))}
                     </div>
+                </div>
 
-                    <div className="lg:col-span-1 sticky top-8" style={{ top: "2rem" }}>
-                        <div className="p-4 sm:p-6 sm:p-8 rounded-2xl shadow-2xl max-h-[calc(100vh-4rem)] overflow-y-auto" style={{ backgroundColor: BORDER_COLOR, border: `2px solid ${PRIMARY_COLOR}` }}>
-                            <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-6 border-b pb-3 text-gray-800 flex items-center">
-                                <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> Order Summary
-                            </h2>
+                {/* 2. Service Address */}
+                <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-xl mb-8 border border-gray-100">
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800 border-b-2 pb-2 mb-6" style={{ borderColor: PRIMARY_COLOR }}>
+                        <MapPin className="w-5 h-5 inline-block mr-2" style={{ color: PRIMARY_COLOR }} /> Service Address
+                    </h2>
+                    <AddressForm
+                        fields={addressFields}
+                        setFields={setAddressFields}
+                        // Only show errors if the checkout button has been clicked
+                        errors={submitAttempted ? addressErrors : {}}
+                        disabled={cartItems.some(it => it.isUpdating)}
+                    />
+                </div>
 
-                            <div className="mb-4">
-                                <label className="block text-gray-700 font-medium mb-1 text-sm sm:text-base">Delivery Address</label>
-                                <textarea
-                                    value={address}
-                                    onChange={(e) => setAddress(e.target.value)}
-                                    placeholder="Enter your delivery address"
-                                    className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 text-sm sm:text-base"
-                                    rows={3}
-                                />
-                            </div>
+                {/* 3. Order Summary & Checkout */}
+                <div className="p-6 sm:p-8 rounded-2xl shadow-2xl" style={{ backgroundColor: BORDER_COLOR, border: `2px solid ${PRIMARY_COLOR}` }}>
+                    <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 border-b pb-3 text-gray-800 flex items-center">
+                        <IndianRupee className="w-5 h-5 mr-2" style={{ color: ACCENT_COLOR }} /> Payment Details
+                    </h2>
 
-                            <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-                                <div className="flex justify-between text-gray-700 text-base sm:text-lg">
-                                    <p>Items Total</p>
-                                    <p className="font-bold">₹{cartTotal.toFixed(2)}</p>
-                                </div>
-                                <div className="flex justify-between text-gray-700 text-base sm:text-lg">
-                                    <p>Taxes & Fees</p>
-                                    <p className="font-bold">₹0.00</p>
-                                </div>
-                                <div className="flex justify-between text-gray-700 text-base sm:text-lg border-t border-gray-400 pt-4">
-                                    <p>Discount</p>
-                                    <p className="font-bold text-red-600">- ₹0.00</p>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-between items-center text-2xl sm:text-3xl font-extrabold border-t-2 border-gray-500 pt-4">
-                                <p>Total Payable</p>
-                                <p style={{ color: PRIMARY_COLOR }} className="flex items-center">₹{cartTotal.toFixed(2)}</p>
-                            </div>
-
-                            <button
-                                onClick={handleCheckout}
-                                disabled={cartItems.length === 0 || cartTotal === 0}
-                                className={`w-full mt-6 sm:mt-8 py-3 sm:py-4 text-white text-lg sm:text-xl font-bold rounded-xl shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-[1.01] hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed`}
-                                style={{ backgroundColor: PRIMARY_COLOR }}
-                            >
-                                Pay ₹{cartTotal.toFixed(2)}
-                                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 ml-2" />
-                            </button>
-
-                            <div className="mt-4 sm:mt-6 p-3 text-xs sm:text-sm rounded-lg text-gray-600 bg-white border border-gray-200 flex items-center">
-                                <Info className="w-3 h-3 sm:w-4 sm:h-4 mr-2 flex-shrink-0" />
-                                <span className="font-medium">Prices are subject to final service inspection.</span>
-                            </div>
+                    <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8 text-lg font-medium">
+                        <div className="flex justify-between text-gray-700">
+                            <p>Items Total</p>
+                            <p className="font-extrabold text-gray-900">₹{cartTotal.toFixed(2)}</p>
+                        </div>
+                        <div className="flex justify-between text-gray-700">
+                            <p>Taxes & Fees</p>
+                            <p className="font-bold">₹0.00</p>
+                        </div>
+                        <div className="flex justify-between text-gray-700">
+                            <p>Discount</p>
+                            <p className="font-bold text-red-600">- ₹0.00</p>
                         </div>
                     </div>
+
+                    <div className="flex justify-between items-center text-2xl sm:text-3xl font-extrabold border-t-2 border-gray-500 pt-4">
+                        <p>Total Payable</p>
+                        <p style={{ color: PRIMARY_COLOR }} className="flex items-center">₹{cartTotal.toFixed(2)}</p>
+                    </div>
+
+                    <button
+                        onClick={() => {
+                            setSubmitAttempted(true);
+                            handleCheckout();
+                        }}
+                        disabled={cartItems.length === 0 || cartTotal === 0 || cartItems.some(it => it.isUpdating) || !isPincodeValid}
+                        className={`w-full mt-6 sm:mt-8 py-3 sm:py-4 text-white text-lg sm:text-xl font-bold rounded-xl shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-[1.01] hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed`}
+                        style={{ backgroundColor: PRIMARY_COLOR }}
+                    >
+                        {cartItems.some(it => it.isUpdating) ? (
+                            <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                        ) : (
+                            `Pay ₹${cartTotal.toFixed(2)}`
+                        )}
+                        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 ml-2" />
+                    </button>
+
+                    <div className="mt-4 sm:mt-6 p-3 text-xs sm:text-sm rounded-lg text-gray-600 bg-white border border-gray-200 flex items-center">
+                        <Info className="w-3 h-3 sm:w-4 sm:h-4 mr-2 flex-shrink-0" />
+                        <span className="font-medium">Prices are subject to final service inspection.</span>
+                    </div>
                 </div>
+
             </div>
         </div>
     );

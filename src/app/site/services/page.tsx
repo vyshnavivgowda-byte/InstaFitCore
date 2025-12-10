@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 import { useToast } from "@/components/Toast";
 import BookServiceModal from "@/components/BookServiceModal";
@@ -10,12 +10,11 @@ import {
   Package,
   ListFilter,
   Bolt,
-  Home,
   Filter,
   X,
   Heart,
   ShoppingCart,
-  Star, // Added for star ratings
+  Star,
 } from "lucide-react";
 
 // --- CUSTOM COLORS ---
@@ -42,14 +41,17 @@ type Subcategory = {
   image_url: string | null;
 };
 
-type WishlistRow = {
-  service_id: number;
-};
-
+type WishlistRow = { service_id: number };
 type CartRow = {
   service_id: number;
   quantity: number;
   selected_services?: string[] | null;
+};
+
+// Raw type for fetching reviews with service_id directly
+type ReviewRaw = {
+  rating: number;
+  service_id: number;
 };
 
 type ReviewItem = {
@@ -72,44 +74,60 @@ const FilterButton: React.FC<{
 }> = ({ label, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`px-3 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1 whitespace-nowrap ${active
-      ? `bg-[${PRIMARY_COLOR}] text-white shadow-md hover:bg-[${HOVER_COLOR}]`
-      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
-      }`}
+    className={`px-3 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1 whitespace-nowrap ${
+      active
+        ? `bg-[${PRIMARY_COLOR}] text-white shadow-md hover:bg-[${HOVER_COLOR}]`
+        : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+    }`}
   >
     {label} {active && <X className="w-3 h-3" />}
   </button>
 );
 
-// Helper to render stars based on rating
+// Render stars for ratings
 const renderStars = (rating: number) => {
   const stars = [];
-  const fullStars = Math.floor(rating); // Number of full stars
+  const fullStars = Math.floor(rating);
   for (let i = 1; i <= 5; i++) {
     stars.push(
       <Star
         key={i}
-        className={`w-4 h-4 ${i <= fullStars ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+        className={`w-4 h-4 ${i <= fullStars ? "text-yellow-400 fill-current" : "text-gray-300"}`}
       />
     );
   }
   return <div className="flex">{stars}</div>;
 };
 
+// --- COMPONENT ---
 export default function ServicesPage() {
   const searchParams = useSearchParams();
   const typeId = searchParams.get("typeId");
   const { toast } = useToast();
+  const router = useRouter();
+
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Booking Modal State
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
+
+  // Reviews Modal State
+  const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
+  const [selectedServiceForReviews, setSelectedServiceForReviews] = useState<ServiceItem | null>(null);
+  const [reviewsForService, setReviewsForService] = useState<ReviewItem[]>([]);
+
+  // Cart Modal State
+  const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+  const [selectedServiceForCart, setSelectedServiceForCart] = useState<ServiceItem | null>(null);
+  const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
+
+  // Filters & Search
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [activePriceFilter, setActivePriceFilter] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
 
   // Auth + persisted states
   const [userId, setUserId] = useState<string | null>(null);
@@ -117,22 +135,17 @@ export default function ServicesPage() {
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [cartItems, setCartItems] = useState<CartRow[]>([]);
 
-  // New state for average ratings (service_id -> average rating)
+  // Ratings state
   const [averageRatings, setAverageRatings] = useState<Record<number, number>>({});
 
-  // New state for mobile filters
+  // Mobile filters
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-
-  // New states for reviews modal
-  const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
-  const [selectedServiceForReviews, setSelectedServiceForReviews] = useState<ServiceItem | null>(null);
-  const [reviewsForService, setReviewsForService] = useState<ReviewItem[]>([]);
 
   const cartCount = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
   const isAuthenticated = !!userId;
   const disabledClass = "opacity-50 cursor-not-allowed";
 
-  // --- Auto-filter by typeId (from home) ---
+  // Auto-filter by typeId
   useEffect(() => {
     if (!typeId) return;
     if (typeId === "1") setActivePriceFilter("install");
@@ -140,87 +153,79 @@ export default function ServicesPage() {
     if (typeId === "3") setActivePriceFilter("repair");
   }, [typeId]);
 
-  // --- FETCH DATA & USER PERSISTED ITEMS ---
+  // --- FETCH DATA ---
   const fetchData = useCallback(async () => {
     setLoading(true);
 
-    // get session
+    // Get session
     const { data: sessionData } = await supabase.auth.getSession();
     const currentUserId = sessionData?.session?.user?.id || null;
     const currentUserEmail = sessionData?.session?.user?.email || null;
     setUserId(currentUserId);
     setUserEmail(currentUserEmail);
 
-    // if logged in, fetch wishlist and cartItems
+    // Fetch wishlist & cart
     if (currentUserId) {
-      const { data: wishlistData, error: wishlistError } = await supabase
+      const { data: wishlistData } = await supabase
         .from("wishlist_items")
         .select("service_id")
         .eq("user_id", currentUserId);
+      setWishlist(wishlistData?.map((r: WishlistRow) => r.service_id) || []);
 
-      if (!wishlistError && Array.isArray(wishlistData)) {
-        setWishlist(wishlistData.map((r: WishlistRow) => r.service_id));
-      } else if (wishlistError) {
-        console.error("Error fetching wishlist:", wishlistError);
-      }
-
-      const { data: cartData, error: cartError } = await supabase
+      const { data: cartData } = await supabase
         .from("cart_items")
         .select("service_id, quantity, selected_services")
         .eq("user_id", currentUserId);
-
-      if (!cartError && Array.isArray(cartData)) {
-        setCartItems(cartData as CartRow[]);
-      } else if (cartError) {
-        console.error("Error fetching cart:", cartError);
-      }
-    } else {
-      setWishlist([]);
-      setCartItems([]);
+      setCartItems(cartData as CartRow[] || []);
     }
 
-    // fetch subcategories
+    // Fetch subcategories
     const { data: subData } = await supabase
       .from("subcategories")
       .select("*")
       .eq("is_active", true)
       .order("subcategory", { ascending: true });
-
     setSubcategories(subData || []);
 
-    // fetch services
+    // Fetch services
     const { data: serviceData } = await supabase
       .from("services")
       .select("*")
       .order("service_name", { ascending: true });
-
     setServices(serviceData || []);
 
-    // Fetch approved reviews and calculate average ratings per service
-    const { data: reviewsData, error: reviewsError } = await supabase
-      .from("service_reviews")
-      .select("rating, bookings!inner(service_id)")
-      .eq("status", "approved");
+    // Fetch approved reviews and calculate average ratings
+    // ... existing code ...
 
-    if (!reviewsError && Array.isArray(reviewsData)) {
-      const ratingsMap: Record<number, { sum: number; count: number }> = {};
-      reviewsData.forEach((review: any) => {
-        const serviceId = review.bookings.service_id;
-        if (!ratingsMap[serviceId]) {
-          ratingsMap[serviceId] = { sum: 0, count: 0 };
-        }
-        ratingsMap[serviceId].sum += review.rating;
-        ratingsMap[serviceId].count += 1;
-      });
+// Fetch approved reviews and calculate average ratings
+const { data: reviewsData, error: reviewsError } = await supabase
+  .from("service_reviews")
+  .select("rating, bookings(service_id)")
+  .eq("status", "approved");
 
-      const avgRatings: Record<number, number> = {};
-      Object.keys(ratingsMap).forEach((sid) => {
-        avgRatings[parseInt(sid)] = ratingsMap[parseInt(sid)].sum / ratingsMap[parseInt(sid)].count;
-      });
-      setAverageRatings(avgRatings);
-    } else if (reviewsError) {
-      console.error("Error fetching reviews:", reviewsError);
+if (reviewsError) {
+  console.error("Error fetching reviews:", reviewsError);
+} else if (reviewsData) {
+  const ratingsMap: Record<number, { sum: number; count: number }> = {};
+  (reviewsData as ReviewRaw[]).forEach(review => {
+    const serviceId = review.bookings.service_id;
+    if (!serviceId) return; // Skip if service_id is null
+    if (!ratingsMap[serviceId]) ratingsMap[serviceId] = { sum: 0, count: 0 };
+    ratingsMap[serviceId].sum += review.rating;
+    ratingsMap[serviceId].count += 1;
+  });
+
+  const avgRatings: Record<number, number> = {};
+  Object.keys(ratingsMap).forEach(sid => {
+    const id = parseInt(sid);
+    if (!isNaN(id) && ratingsMap[id]) {
+      avgRatings[id] = ratingsMap[id].sum / ratingsMap[id].count;
     }
+  });
+  setAverageRatings(avgRatings);
+}
+
+// ... existing code ...
 
     setLoading(false);
   }, []);
@@ -229,196 +234,112 @@ export default function ServicesPage() {
     fetchData();
   }, [fetchData]);
 
-  // --- Fetch reviews for a specific service ---
+  // --- Fetch reviews for a service ---
   const fetchReviewsForService = useCallback(async (serviceId: number) => {
-    const { data: reviewsData, error: reviewsError } = await supabase
+    const { data, error } = await supabase
       .from("service_reviews")
-      .select("id, rating, employee_name, service_details, created_at, images, bookings!inner(service_id)")
-      .eq("status", "approved")
-      .eq("bookings.service_id", serviceId);
+      .select("id, rating, employee_name, service_details, created_at, images")
+      .eq("status", "approved")  // only approved reviews
+      .eq("service_id", serviceId) // filter by service
+      .order("created_at", { ascending: false });
 
-    if (!reviewsError && Array.isArray(reviewsData)) {
-      setReviewsForService(reviewsData as ReviewItem[]);
-    } else {
-      console.error("Error fetching reviews for service:", reviewsError);
+    if (error) {
+      console.error("Error fetching reviews for service:", error);
       setReviewsForService([]);
+    } else {
+      setReviewsForService(data || []);
     }
   }, []);
 
-  // --- Handle opening reviews modal ---
   const handleSeeReviews = (service: ServiceItem) => {
     setSelectedServiceForReviews(service);
     fetchReviewsForService(service.id);
     setIsReviewsModalOpen(true);
   };
 
-  // --- Wishlist toggle (insert / delete) ---
-  const toggleWishlist = useCallback(
-    async (service_id: number) => {
-      if (!isAuthenticated || !userId) {
-        toast({
-          title: "Login Required",
-          description: "Please log in to add items to your Wishlist.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const isCurrentlyWishlisted = wishlist.includes(service_id);
-
-      if (isCurrentlyWishlisted) {
-        // remove from wishlist
-        const { error } = await supabase
-          .from("wishlist_items")
-          .delete()
-          .eq("user_id", userId)
-          .eq("service_id", service_id);
-
-        if (error) {
-          console.error("Error removing from wishlist:", error);
-          toast({
-            title: "Error",
-            description: "Failed to remove from wishlist. Please try again.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        setWishlist(prev => prev.filter(x => x !== service_id));
-        toast({
-          title: "Removed from Wishlist",
-          description: "Service removed from your wishlist.",
-        });
-
-      } else {
-        // add to wishlist
-        const { error } = await supabase
-          .from("wishlist_items")
-          .insert({ user_id: userId, service_id });
-
-        if (error) {
-          console.error("Error adding to wishlist:", error);
-          toast({
-            title: "Error",
-            description: "Failed to add to wishlist. Please try again.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        setWishlist(prev => [...prev, service_id]);
-        toast({
-          title: "Added to Wishlist",
-          description: "Service added to your wishlist.",
-        });
-      }
-    },
-    [isAuthenticated, userId, wishlist, toast]
-  );
-
-  // --- Add to cart (UPSERT) ---
-  const addToCart = useCallback(
-    async (item: ServiceItem) => {
-      if (!isAuthenticated || !userId) {
-        toast({
-          title: "Login Required",
-          description: "Please log in to add items to your Cart.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const service_id = item.id;
-      const existing = cartItems.find(c => c.service_id === service_id);
-      const newQuantity = existing ? existing.quantity + 1 : 1;
-
-      const { data, error } = await supabase
-        .from("cart_items")
-        .upsert(
-          {
-            user_id: userId,
-            service_id,
-            quantity: newQuantity,
-            // selected_services left to DB default unless you want to pass a value:
-            // selected_services: ['installation']
-          },
-          { onConflict: "user_id, service_id" }
-        )
-        .select("service_id, quantity")
-        .single();
-
-      if (error) {
-        console.error("Error adding to cart:", error);
-        toast({
-          title: "Error",
-          description: "Failed to add to cart. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // update local state using DB response (data)
-      if (data) {
-        setCartItems(prev => {
-          const exists = prev.find(p => p.service_id === data.service_id);
-          if (exists) {
-            return prev.map(p =>
-              p.service_id === data.service_id ? { ...p, quantity: data.quantity } : p
-            );
-          } else {
-            return [...prev, { service_id: data.service_id, quantity: data.quantity }];
-          }
-        });
-
-        toast({
-          title: "Added to Cart",
-          description: `${item.service_name} quantity is now ${data.quantity}.`,
-        });
-      } else {
-        // fallback local update
-        setCartItems(prev => {
-          if (existing) {
-            return prev.map(c => c.service_id === service_id ? { ...c, quantity: newQuantity } : c);
-          } else {
-            return [...prev, { service_id, quantity: newQuantity }];
-          }
-        });
-        alert(`Added ${item.service_name} to cart! Quantity is now ${newQuantity}.`);
-      }
-    },
-    [isAuthenticated, userId, cartItems]
-  );
-
-  // --- Filters ---
-  const filteredServices = useMemo(() => {
-    let list = [...services];
-
-    if (selectedSubcategory) {
-      list = list.filter(s => s.subcategory === selectedSubcategory);
+  // --- Wishlist ---
+  const toggleWishlist = useCallback(async (service_id: number) => {
+    if (!isAuthenticated || !userId) {
+      toast({ title: "Login Required", description: "Please log in.", variant: "destructive" });
+      return;
     }
 
-    if (activePriceFilter === "install")
-      list = list.filter(s => s.installation_price && s.installation_price > 0);
+    const isWishlisted = wishlist.includes(service_id);
+    if (isWishlisted) {
+      await supabase.from("wishlist_items").delete().eq("user_id", userId).eq("service_id", service_id);
+      setWishlist(prev => prev.filter(x => x !== service_id));
+      toast({ title: "Removed from Wishlist" });
+    } else {
+      await supabase.from("wishlist_items").insert({ user_id: userId, service_id });
+      setWishlist(prev => [...prev, service_id]);
+      toast({ title: "Added to Wishlist" });
+    }
+  }, [isAuthenticated, userId, wishlist, toast]);
 
-    if (activePriceFilter === "dismantle")
-      list = list.filter(s => s.dismantling_price && s.dismantling_price > 0);
+  // --- Add to Cart ---
+  const confirmAddToCart = useCallback(async (item: ServiceItem, selected_services: string[]) => {
+    if (!isAuthenticated || !userId) {
+      toast({ title: "Login Required", description: "Please log in.", variant: "destructive" });
+      return;
+    }
 
-    if (activePriceFilter === "repair")
-      list = list.filter(s => s.repair_price && s.repair_price > 0);
+    const service_id = item.id;
+    const existing = cartItems.find(c => c.service_id === service_id);
+    const newQuantity = existing ? existing.quantity + 1 : 1;
 
-    if (searchText)
-      list = list.filter(s =>
-        s.service_name.toLowerCase().includes(searchText.toLowerCase())
-      );
+    const servicesToSave = selected_services.length > 0 ? selected_services : null;
 
+    const { data, error } = await supabase
+      .from("cart_items")
+      .upsert({ user_id: userId, service_id, quantity: newQuantity, selected_services: servicesToSave }, { onConflict: "user_id, service_id" })
+      .select("service_id, quantity, selected_services")
+      .single();
+
+    if (error) {
+      console.error("Error adding to cart:", error);
+      toast({ title: "Error", description: "Failed to add to cart.", variant: "destructive" });
+      return;
+    }
+
+    if (data) {
+      setCartItems(prev => {
+        const exists = prev.find(p => p.service_id === data.service_id);
+        const newItem: CartRow = { service_id: data.service_id, quantity: data.quantity, selected_services: data.selected_services };
+        if (exists) return prev.map(p => p.service_id === data.service_id ? newItem : p);
+        return [...prev, newItem];
+      });
+      toast({ title: "Added to Cart", description: `${item.service_name} added. Quantity now ${data.quantity}.` });
+      setIsCartModalOpen(false);
+    }
+  }, [isAuthenticated, userId, cartItems, toast]);
+
+  const handleCartClick = (service: ServiceItem, isInCart: boolean) => {
+    if (!isAuthenticated) {
+      toast({ title: "Login Required", description: "Please log in.", variant: "destructive" });
+      return;
+    }
+    if (isInCart) {
+      router.push("/site/cart");
+      return;
+    }
+    setSelectedServiceForCart(service);
+    setSelectedServiceTypes([]);
+    setIsCartModalOpen(true);
+  };
+
+  // --- Filtered Services ---
+  const filteredServices = useMemo(() => {
+    let list = [...services];
+    if (selectedSubcategory) list = list.filter(s => s.subcategory === selectedSubcategory);
+    if (activePriceFilter === "install") list = list.filter(s => s.installation_price && s.installation_price > 0);
+    if (activePriceFilter === "dismantle") list = list.filter(s => s.dismantling_price && s.dismantling_price > 0);
+    if (activePriceFilter === "repair") list = list.filter(s => s.repair_price && s.repair_price > 0);
+    if (searchText) list = list.filter(s => s.service_name.toLowerCase().includes(searchText.toLowerCase()));
     return list;
   }, [services, selectedSubcategory, activePriceFilter, searchText]);
 
   const handleBookClick = (service: ServiceItem) => {
-    if (!isAuthenticated) {
-      alert("Please log in to book a service.");
-      return;
-    }
+    if (!isAuthenticated) { alert("Please log in."); return; }
     setSelectedService(service);
     setModalOpen(true);
   };
@@ -427,9 +348,7 @@ export default function ServicesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* HEADER */}
-      <header
-        className={`bg-[${PRIMARY_COLOR}] text-white py-16 px-6 text-center shadow-lg`}
-      >
+      <header className="bg-primary-green text-white py-16 px-6 text-center shadow-lg">
         <div className="max-w-7xl mx-auto flex flex-col items-center justify-center text-center gap-4">
           {/* Centered Content */}
           <h1 className="text-2xl md:text-3xl font-extrabold flex items-center gap-3 justify-center">
@@ -452,20 +371,20 @@ export default function ServicesPage() {
               <button
                 onClick={() => setSelectedSubcategory(null)}
                 className={`w-full text-left px-4 py-2 rounded-xl font-medium border-2 ${selectedSubcategory === null
-                  ? `bg-[${PRIMARY_COLOR}] text-white border-[${PRIMARY_COLOR}]`
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-transparent"
+                    ? "bg-primary-green text-white border-primary-green"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-transparent"
                   }`}
               >
                 All Services
               </button>
             </li>
-            {subcategories.map(subcat => (
+            {subcategories.map((subcat) => (
               <li key={subcat.id}>
                 <button
                   onClick={() => setSelectedSubcategory(subcat.subcategory)}
                   className={`w-full text-left px-4 py-2 rounded-xl ${selectedSubcategory === subcat.subcategory
-                    ? `bg-[${PRIMARY_COLOR}] text-white font-semibold shadow-md`
-                    : "hover:bg-gray-100 text-gray-700"
+                      ? "bg-primary-green text-white font-semibold shadow-md"
+                      : "hover:bg-gray-100 text-gray-700"
                     }`}
                 >
                   {subcat.subcategory}
@@ -519,18 +438,18 @@ export default function ServicesPage() {
             ) : (
               filteredServices.map(service => {
                 const isWishlisted = wishlist.includes(service.id);
-
+                const isInCart = cartItems.some(item => item.service_id === service.id);
                 return (
                   <div
                     key={service.id}
                     className="bg-white rounded-2xl shadow-lg p-5 flex flex-col relative"
                   >
-                    {/* Wishlist Heart */}
+                                        {/* Wishlist Heart */}
                     <button
                       onClick={() => toggleWishlist(service.id)}
                       className={`absolute top-3 right-3 z-20 p-2 rounded-full shadow-md transition-colors 
-      ${isWishlisted ? "bg-red-500 text-white" : "bg-white text-gray-500 hover:text-red-500"} 
-      ${!isAuthenticated ? "opacity-50 cursor-not-allowed" : ""}`}
+                                                ${isWishlisted ? "bg-red-500 text-white" : "bg-white text-gray-500 hover:text-red-500"} 
+                                                ${!isAuthenticated ? "opacity-50 cursor-not-allowed" : ""}`}
                       title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
                     >
                       <Heart className="w-5 h-5" />
@@ -538,7 +457,6 @@ export default function ServicesPage() {
 
                     {/* IMAGE BLOCK */}
                     <div className="w-full h-40 bg-gray-100 rounded-xl overflow-hidden mb-4 relative">
-
                       {service.image_url ? (
                         <img
                           src={service.image_url}
@@ -557,9 +475,9 @@ export default function ServicesPage() {
                         <button
                           onClick={() => handleSeeReviews(service)}
                           className="absolute bottom-2 right-2 px-3 py-1.5
-        bg-black/70 text-white backdrop-blur-md
-        rounded-full text-xs font-medium flex items-center gap-1
-        hover:bg-black/90 transition-all z-10"
+                                                        bg-black/70 text-white backdrop-blur-md
+                                                        rounded-full text-xs font-medium flex items-center gap-1
+                                                        hover:bg-black/90 transition-all z-10"
                         >
                           ⭐ {averageRatings[service.id].toFixed(1)} • See Reviews
                         </button>
@@ -613,15 +531,18 @@ export default function ServicesPage() {
 
                     {/* ACTION BUTTONS */}
                     <div className="flex gap-3 mt-5">
-                      {/* Add to cart */}
+                      {/* Add to cart - NOW OPENS MODAL */}
                       <button
-                        onClick={() => addToCart(service)}
+                        onClick={() => handleCartClick(service, isInCart)}
                         disabled={!isAuthenticated}
-                        className={`p-3 rounded-xl border transition-colors flex items-center justify-center ${isAuthenticated
-                            ? `border-[${PRIMARY_COLOR}] text-[${PRIMARY_COLOR}] hover:bg-[${PRIMARY_COLOR}]/10`
-                            : "bg-gray-200 text-gray-500 " + disabledClass
+                        className={`p-3 rounded-xl border transition-colors flex items-center justify-center 
+        ${isInCart // This condition makes the button solid red
+                            ? `border-red-500 text-white bg-red-500 hover:bg-red-600`
+                            : isAuthenticated
+                              ? `border-[${PRIMARY_COLOR}] text-[${PRIMARY_COLOR}] hover:bg-[${PRIMARY_COLOR}]/10`
+                              : "bg-gray-200 text-gray-500 " + disabledClass
                           }`}
-                        title="Add to Cart"
+                        title={isInCart ? "Service added to Cart (Click to modify)" : "Add service to Cart"}
                       >
                         <ShoppingCart className="w-5 h-5" />
                       </button>
@@ -630,8 +551,8 @@ export default function ServicesPage() {
                       <button
                         onClick={() => handleBookClick(service)}
                         className={`flex-grow p-3 rounded-xl text-white font-semibold flex items-center justify-center shadow-md ${isAuthenticated
-                            ? `bg-[${PRIMARY_COLOR}] hover:bg-[${HOVER_COLOR}]`
-                            : "bg-gray-400 " + disabledClass
+                            ? "bg-primary-green hover:bg-hover-green"
+                            : "bg-gray-400 opacity-50 cursor-not-allowed"
                           }`}
                         disabled={!isAuthenticated}
                       >
@@ -639,7 +560,6 @@ export default function ServicesPage() {
                       </button>
                     </div>
                   </div>
-
                 );
               })
             )}
@@ -647,7 +567,7 @@ export default function ServicesPage() {
         </main>
       </div>
 
-      {/* MOBILE FILTER MODAL */}
+      {/* MOBILE FILTER MODAL (existing) */}
       {showMobileFilters && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 lg:hidden">
           <div className="bg-white rounded-2xl p-6 w-11/12 max-w-md max-h-[80vh] overflow-y-auto">
@@ -668,7 +588,7 @@ export default function ServicesPage() {
                 placeholder="Search by service name..."
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[${PRIMARY_COLOR}]"
+                className={`w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[${PRIMARY_COLOR}]`}
               />
             </div>
 
@@ -723,7 +643,103 @@ export default function ServicesPage() {
         </div>
       )}
 
-      {/* REVIEWS MODAL */}
+      {/* ⭐ NEW: CART SELECTION MODAL */}
+      {isCartModalOpen && selectedServiceForCart && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-11/12 max-w-lg max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <ShoppingCart className="w-6 h-6 text-gray-600" />
+                Select Services for {selectedServiceForCart.service_name}
+              </h3>
+              <button
+                onClick={() => setIsCartModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <p className="mb-4 text-gray-600">Choose the type(s) of service you need for this item.</p>
+
+            <div className="space-y-4">
+              {/* Installation */}
+              {formatPrice(selectedServiceForCart.installation_price) && (
+                <label className="flex items-center space-x-3 p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                  <input
+                    type="checkbox"
+                    className={`w-5 h-5 text-[${PRIMARY_COLOR}] rounded focus:ring-[${PRIMARY_COLOR}]`}
+                    checked={selectedServiceTypes.includes("installation")}
+                    onChange={() => {
+                      setSelectedServiceTypes(prev =>
+                        prev.includes("installation")
+                          ? prev.filter(t => t !== "installation")
+                          : [...prev, "installation"]
+                      );
+                    }}
+                  />
+                  <span className="font-medium text-lg flex-grow">Installation</span>
+                  <span className="text-green-600 font-bold text-lg">{formatPrice(selectedServiceForCart.installation_price)}</span>
+                </label>
+              )}
+
+              {/* Dismantling */}
+              {formatPrice(selectedServiceForCart.dismantling_price) && (
+                <label className="flex items-center space-x-3 p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                  <input
+                    type="checkbox"
+                    className={`w-5 h-5 text-[${PRIMARY_COLOR}] rounded focus:ring-[${PRIMARY_COLOR}]`}
+                    checked={selectedServiceTypes.includes("dismantling")}
+                    onChange={() => {
+                      setSelectedServiceTypes(prev =>
+                        prev.includes("dismantling")
+                          ? prev.filter(t => t !== "dismantling")
+                          : [...prev, "dismantling"]
+                      );
+                    }}
+                  />
+                  <span className="font-medium text-lg flex-grow">Dismantling</span>
+                  <span className="text-green-600 font-bold text-lg">{formatPrice(selectedServiceForCart.dismantling_price)}</span>
+                </label>
+              )}
+
+              {/* Repair */}
+              {formatPrice(selectedServiceForCart.repair_price) && (
+                <label className="flex items-center space-x-3 p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                  <input
+                    type="checkbox"
+                    className={`w-5 h-5 text-[${PRIMARY_COLOR}] rounded focus:ring-[${PRIMARY_COLOR}]`}
+                    checked={selectedServiceTypes.includes("repair")}
+                    onChange={() => {
+                      setSelectedServiceTypes(prev =>
+                        prev.includes("repair")
+                          ? prev.filter(t => t !== "repair")
+                          : [...prev, "repair"]
+                      );
+                    }}
+                  />
+                  <span className="font-medium text-lg flex-grow">Repair</span>
+                  <span className="text-green-600 font-bold text-lg">{formatPrice(selectedServiceForCart.repair_price)}</span>
+                </label>
+              )}
+            </div>
+
+            <button
+              onClick={() => confirmAddToCart(selectedServiceForCart, selectedServiceTypes)}
+              disabled={selectedServiceTypes.length === 0}
+              className={`w-full mt-6 p-4 rounded-xl text-white font-semibold flex items-center justify-center shadow-md transition-all 
+                                ${selectedServiceTypes.length > 0
+                  ? `bg-[${PRIMARY_COLOR}] hover:bg-[${HOVER_COLOR}]`
+                  : "bg-gray-400 opacity-70 cursor-not-allowed"
+                }`}
+            >
+              Add to Cart ({selectedServiceTypes.length} Service{selectedServiceTypes.length !== 1 ? 's' : ''})
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* REVIEWS MODAL (existing) */}
       {isReviewsModalOpen && selectedServiceForReviews && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 w-11/12 max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -765,6 +781,7 @@ export default function ServicesPage() {
         </div>
       )}
 
+      {/* BOOKING MODAL (existing) */}
       {selectedService && (
         <BookServiceModal
           service={selectedService}

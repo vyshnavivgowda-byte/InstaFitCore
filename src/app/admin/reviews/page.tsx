@@ -37,22 +37,18 @@ export default function ReviewsPage() {
 
     const { data, error } = await supabase
       .from("service_reviews")
-      .select(
-        `
-        id,
-        rating,
-        employee_name,
-        service_details,
-        status,
-        created_at,
-        images,
-        bookings (
-          id,
-          service_name
-        )
-      `
-      )
+      .select(`
+    id,
+    rating,
+    employee_name,
+    service_details,
+    status,
+    created_at,
+    images,
+    booking_id
+  `)
       .order("created_at", { ascending: false });
+
 
     if (error) {
       console.error("Error fetching reviews:", error);
@@ -71,39 +67,43 @@ export default function ReviewsPage() {
   // -------------------------------
   // UPDATE STATUS (FULLY FIXED)
   // -------------------------------
+  // -------------------------------
+  // UPDATE STATUS (FULLY FIXED)
+  // -------------------------------
   const updateStatus = async (id: number, newStatus: Review["status"]) => {
+    // Determine the boolean value for is_approved based on the newStatus
+    const newIsApproved = newStatus === "approved";
+
     // Optimistic UI
     setReviews((prev) =>
       prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
     );
 
-    // Actual DB update (FIXED with .select())
+    // Actual DB update, including the boolean column if you keep it
     const { data, error } = await supabase
       .from("service_reviews")
-      .update({ status: newStatus })
+      .update({
+        status: newStatus,
+        is_approved: newIsApproved // <-- ADDED this line
+      })
       .eq("id", id)
       .select(); // THIS IS REQUIRED
 
     if (error) {
       console.error("Supabase update error:", error.message);
-
-      // rollback UI
-      fetchReviews();
+      fetchReviews(); // rollback UI
       return;
     }
 
     if (!data || data.length === 0) {
       console.error("Update did not apply — RLS policy likely missing");
-
-      // rollback UI
-      fetchReviews();
+      fetchReviews(); // rollback UI
       return;
     }
 
     // Success
     console.log("Status updated:", data);
   };
-
   // -------------------------------
   // BADGE
   // -------------------------------
@@ -112,15 +112,15 @@ export default function ReviewsPage() {
       status === "approved"
         ? "bg-green-100 text-green-700"
         : status === "rejected"
-        ? "bg-red-100 text-red-700"
-        : "bg-yellow-100 text-yellow-700";
+          ? "bg-red-100 text-red-700"
+          : "bg-yellow-100 text-yellow-700";
 
     const Icon =
       status === "approved"
         ? CheckCircle
         : status === "rejected"
-        ? XCircle
-        : Clock;
+          ? XCircle
+          : Clock;
 
     return (
       <span
@@ -247,11 +247,10 @@ export default function ReviewsPage() {
                   <button
                     onClick={() => updateStatus(r.id, "approved")}
                     disabled={r.status === "approved"}
-                    className={`flex-1 py-2 px-4 rounded-xl font-medium ${
-                      r.status === "approved"
-                        ? "bg-green-200 text-green-700"
-                        : "bg-[#8ed26b] text-white hover:bg-[#6ebb53]"
-                    }`}
+                    className={`flex-1 py-2 px-4 rounded-xl font-medium ${r.status === "approved"
+                      ? "bg-green-200 text-green-700"
+                      : "bg-[#8ed26b] text-white hover:bg-[#6ebb53]"
+                      }`}
                   >
                     {r.status === "approved" ? "Approved" : "Approve"}
                   </button>
@@ -259,11 +258,10 @@ export default function ReviewsPage() {
                   <button
                     onClick={() => updateStatus(r.id, "rejected")}
                     disabled={r.status === "rejected"}
-                    className={`flex-1 py-2 px-4 rounded-xl font-medium ${
-                      r.status === "rejected"
-                        ? "bg-red-200 text-red-700"
-                        : "bg-red-600 text-white hover:bg-red-700"
-                    }`}
+                    className={`flex-1 py-2 px-4 rounded-xl font-medium ${r.status === "rejected"
+                      ? "bg-red-200 text-red-700"
+                      : "bg-red-600 text-white hover:bg-red-700"
+                      }`}
                   >
                     {r.status === "rejected" ? "Rejected" : "Reject"}
                   </button>

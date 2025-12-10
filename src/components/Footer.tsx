@@ -69,16 +69,42 @@ export default function Footer() {
         </div>
 
         {/* --- 3. SERVICES LIST --- */}
+        {/* --- 3. SERVICES LIST --- */}
         <div>
-          <h5 className="text-white text-xl font-bold mb-5 border-b border-gray-700 pb-2">Service Categories</h5>
+          <h5 className="text-white text-xl font-bold mb-5 border-b border-gray-700 pb-2">
+            Service Categories
+          </h5>
+
           <ul className="space-y-3 text-gray-400 text-sm">
-            <li className="transition-colors hover:text-white block hover:translate-x-1 duration-200">Furniture Installation</li>
-            <li className="transition-colors hover:text-white block hover:translate-x-1 duration-200">Furniture Dismantling</li>
-            <li className="transition-colors hover:text-white block hover:translate-x-1 duration-200">Furniture Repair</li>
-            <li className="transition-colors hover:text-white block hover:translate-x-1 duration-200">Modular Kitchen Setup</li>
-            <li className="transition-colors hover:text-white block hover:translate-x-1 duration-200">Packing & Relocation Support</li>
+            <li>
+              <a
+                href="/site/services?typeId=1"
+                className="transition-colors hover:text-white block hover:translate-x-1 duration-200"
+              >
+                Furniture Installation
+              </a>
+            </li>
+
+            <li>
+              <a
+                href="/site/services?typeId=2"
+                className="transition-colors hover:text-white block hover:translate-x-1 duration-200"
+              >
+                Furniture Dismantling
+              </a>
+            </li>
+
+            <li>
+              <a
+                href="/site/services?typeId=3"
+                className="transition-colors hover:text-white block hover:translate-x-1 duration-200"
+              >
+                Furniture Repair
+              </a>
+            </li>
           </ul>
         </div>
+
 
         {/* --- 4. CONTACT INFO --- */}
         <div>
