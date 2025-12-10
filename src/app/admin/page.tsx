@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import {
   Layers,
@@ -11,15 +11,16 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-// Type for StatCard props
+// -----------------------
+// TYPES
+// -----------------------
 type StatCardProps = {
   title: string;
   value: number | string;
-  icon: JSX.Element;
+  icon: React.ReactNode;
   gradient: string;
 };
 
-// Type for a Booking item
 type Booking = {
   id: number;
   customer_name: string;
@@ -29,6 +30,9 @@ type Booking = {
   total_price: number;
 };
 
+// -----------------------
+// ADMIN DASHBOARD COMPONENT
+// -----------------------
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
     totalCategories: 0,
@@ -40,6 +44,7 @@ export default function AdminDashboard() {
 
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
 
+  // Fetch dashboard data
   const fetchDashboardData = async () => {
     try {
       const [
@@ -80,9 +85,12 @@ export default function AdminDashboard() {
     fetchDashboardData();
   }, []);
 
+  // -----------------------
+  // RENDER
+  // -----------------------
   return (
     <div className="bg-[#f5f7fa] min-h-screen p-8 space-y-12">
-      {/* HEADER CARD */}
+      {/* HEADER */}
       <div className="bg-white backdrop-blur-xl shadow-xl p-8 rounded-3xl border border-gray-100 flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
@@ -92,11 +100,9 @@ export default function AdminDashboard() {
             Welcome back! Here is your platform summary.
           </p>
         </div>
-
         <button
           onClick={fetchDashboardData}
-          className="flex items-center gap-2 px-5 py-3 rounded-xl 
-          bg-[#e8f5e1] text-[#4b9b3d] hover:bg-[#d4edce] font-semibold transition"
+          className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[#e8f5e1] text-[#4b9b3d] hover:bg-[#d4edce] font-semibold transition"
         >
           <RefreshCw size={18} />
           Refresh
@@ -139,9 +145,7 @@ export default function AdminDashboard() {
 
       {/* RECENT BOOKINGS */}
       <div className="bg-white shadow-xl rounded-3xl p-10 border border-gray-100">
-        <h2 className="text-3xl font-bold text-gray-900 mb-6">
-          Recent Bookings
-        </h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-6">Recent Bookings</h2>
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px]">
@@ -154,29 +158,19 @@ export default function AdminDashboard() {
                 <th className="p-4 text-left">Price</th>
               </tr>
             </thead>
-
             <tbody className="text-gray-700">
               {recentBookings.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="p-6 text-center text-gray-500 font-medium"
-                  >
+                  <td colSpan={5} className="p-6 text-center text-gray-500 font-medium">
                     No recent bookings found.
                   </td>
                 </tr>
               )}
-
               {recentBookings.map((b) => (
-                <tr
-                  key={b.id}
-                  className="border-b hover:bg-gray-50 transition"
-                >
+                <tr key={b.id} className="border-b hover:bg-gray-50 transition">
                   <td className="p-4">{b.customer_name}</td>
                   <td className="p-4">{b.service_name}</td>
-                  <td className="p-4">
-                    {new Date(b.date).toLocaleDateString()}
-                  </td>
+                  <td className="p-4">{new Date(b.date).toLocaleDateString()}</td>
                   <td className="p-4">
                     <span
                       className={`px-3 py-1 text-sm font-semibold rounded-full ${
@@ -199,23 +193,19 @@ export default function AdminDashboard() {
   );
 }
 
-/*-----------------------
-      STAT CARD
-------------------------*/
+// -----------------------
+// STAT CARD COMPONENT
+// -----------------------
 function StatCard({ title, value, icon, gradient }: StatCardProps) {
   return (
     <div className="p-7 bg-white rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl hover:-translate-y-1 transition-all">
       <div className="flex items-center gap-5">
-        <div
-          className={`w-16 h-16 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br ${gradient}`}
-        >
+        <div className={`w-16 h-16 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br ${gradient}`}>
           {icon}
         </div>
         <div>
           <p className="text-gray-500 text-sm">{title}</p>
-          <p className="text-4xl font-extrabold text-gray-900 leading-tight">
-            {value}
-          </p>
+          <p className="text-4xl font-extrabold text-gray-900 leading-tight">{value}</p>
         </div>
       </div>
     </div>
