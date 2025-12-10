@@ -50,11 +50,25 @@ export default function ReviewsPage() {
       .order("created_at", { ascending: false });
 
 
+    // Inside fetchReviews function
     if (error) {
       console.error("Error fetching reviews:", error);
       setReviews([]);
-    } else {
-      setReviews(data as Review[]);
+    } else if (data) {
+      // Map the data to match the Review type
+      const mappedReviews: Review[] = (data as any[]).map((item) => ({
+        id: item.id,
+        rating: item.rating,
+        employee_name: item.employee_name,
+        service_details: item.service_details,
+        status: item.status,
+        created_at: item.created_at,
+        images: item.images ?? [],
+        bookings: item.booking_id
+          ? { id: item.booking_id, service_name: "Unknown Service" } // you can fetch service_name if needed
+          : null,
+      }));
+      setReviews(mappedReviews);
     }
 
     setLoading(false);
