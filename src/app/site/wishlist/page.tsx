@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 // Ensure this path to your Supabase client is correct
-import { supabase } from "@/lib/supabase-client"; 
+import { supabase } from "@/lib/supabase-client";
 import Image from "next/image";
 import { Heart, X, ShoppingCart, Loader2, Package, ChevronRight, AlertTriangle, Info } from "lucide-react";
 
@@ -15,8 +15,8 @@ const LIGHT_BG = "#f9fafb"; // Very light grey background
 type ServiceDetails = {
     id: number;
     service_name: string;
-    installation_price: number | null; 
-    dismantling_price: number | null; 
+    installation_price: number | null;
+    dismantling_price: number | null;
     repair_price: number | null;
     image_url: string | null;
 };
@@ -26,7 +26,7 @@ type WishlistItem = {
     user_id: string;
     service_id: number;
     created_at: string;
-    service: ServiceDetails | null; 
+    service: ServiceDetails | null;
     isUpdating: boolean;
 };
 
@@ -49,15 +49,15 @@ const calculateUnitServicePrice = (service: ServiceDetails | null): number => {
 /**
  * Renders a single item in the wishlist with action buttons (Premium Design).
  */
-const WishlistItemCard: React.FC<{ 
-    item: WishlistItem; 
+const WishlistItemCard: React.FC<{
+    item: WishlistItem;
     onRemove: (id: number) => void;
     onMoveToCart: (item: WishlistItem) => void;
 }> = ({ item, onRemove, onMoveToCart }) => {
-    
+
     const unitPrice = calculateUnitServicePrice(item.service);
     const isServiceMissing = !item.service;
-    
+
     const priceDetails: { name: string, price: number }[] = item.service ? [
         { name: "Installation", price: +(item.service.installation_price || 0) },
         { name: "Dismantling", price: +(item.service.dismantling_price || 0) },
@@ -71,15 +71,15 @@ const WishlistItemCard: React.FC<{
 
 
     return (
-        <div 
+        <div
             className={`flex flex-col md:flex-row items-stretch p-6 bg-white rounded-2xl shadow-lg transition-shadow duration-300 hover:shadow-xl border border-gray-200 relative`}
         >
-            
+
             {/* Image / Placeholder */}
             <div className="flex-shrink-0 relative w-full h-40 sm:w-32 sm:h-32 mr-6 mb-4 md:mb-0 rounded-xl overflow-hidden shadow-md">
                 {imageSource ? (
                     <Image
-                        src={imageSource} 
+                        src={imageSource}
                         alt={item.service?.service_name || "Service Image"}
                         layout="fill"
                         objectFit="cover"
@@ -98,7 +98,7 @@ const WishlistItemCard: React.FC<{
                 <h3 className="text-2xl font-extrabold text-gray-900 truncate mb-1">
                     {item.service?.service_name || "Service Not Found"}
                 </h3>
-                
+
                 {isServiceMissing ? (
                     <p className="text-sm font-semibold text-red-500 flex items-center mb-4">
                         <AlertTriangle className="w-4 h-4 mr-1" /> Service details are incomplete or unavailable.
@@ -108,7 +108,7 @@ const WishlistItemCard: React.FC<{
                         <p className="text-xl font-bold text-gray-700 mb-3 flex items-center">
                             Estimated Cost: <span className="text-3xl font-extrabold ml-2" style={{ color: ACCENT_COLOR }}>₹{unitPrice.toFixed(2)}</span>
                         </p>
-                        
+
                         {priceDetails.length > 0 && (
                             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-200">
                                 <span className="font-semibold text-gray-700">Details:</span>
@@ -134,13 +134,13 @@ const WishlistItemCard: React.FC<{
                     style={{ backgroundColor: PRIMARY_COLOR }}
                 >
                     {item.isUpdating ? (
-                         <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
                     ) : (
-                         <ShoppingCart className="w-5 h-5 mr-2" />
+                        <ShoppingCart className="w-5 h-5 mr-2" />
                     )}
                     {item.isUpdating ? 'Moving...' : 'Move to Cart'}
                 </button>
-                
+
                 {/* Remove Button */}
                 <button
                     onClick={() => onRemove(item.id)}
@@ -168,7 +168,7 @@ export default function WishlistPage() {
     const fetchWishlistItems = useCallback(async () => {
         setLoading(true);
         setError(null);
-        
+
         const { data: sessionData } = await supabase.auth.getSession();
         const userId = sessionData?.session?.user?.id;
 
@@ -181,7 +181,7 @@ export default function WishlistPage() {
 
         // 1. Fetch wishlist items
         const { data: wishlistData, error: wishlistError } = await supabase
-            .from("wishlist_items") 
+            .from("wishlist_items")
             .select("*")
             .eq("user_id", userId);
 
@@ -191,7 +191,7 @@ export default function WishlistPage() {
             setLoading(false);
             return;
         }
-        
+
         if (!wishlistData || wishlistData.length === 0) {
             setWishlistItems([]);
             setLoading(false);
@@ -232,7 +232,7 @@ export default function WishlistPage() {
     // --- Wishlist Actions ---
 
     const handleRemoveItem = useCallback(async (itemId: number) => {
-        setWishlistItems(prev => prev.map(item => 
+        setWishlistItems(prev => prev.map(item =>
             item.id === itemId ? { ...item, isUpdating: true } : item
         ));
 
@@ -244,60 +244,58 @@ export default function WishlistPage() {
         if (error) {
             console.error("Remove item error:", error);
             setError(`Failed to remove item: ${error.message}`);
-            setWishlistItems(prev => prev.map(item => 
+            setWishlistItems(prev => prev.map(item =>
                 item.id === itemId ? { ...item, isUpdating: false } : item
             ));
         } else {
             setWishlistItems(prev => prev.filter(item => item.id !== itemId));
         }
     }, []);
-    
+
     const handleMoveToCart = useCallback(async (item: WishlistItem) => {
-        const userId = item.user_id;
+        const userId = item.user_id; // already string from wishlist item
 
         if (!item.service) {
             alert("Cannot move item without service details.");
             return;
         }
 
-        setWishlistItems(prev => prev.map(i => 
+        setWishlistItems(prev => prev.map(i =>
             i.id === item.id ? { ...i, isUpdating: true } : i
         ));
-        
-        // 1. Insert/Update Cart Items
+
+        // Insert/Update Cart Items
         const { error: insertError } = await supabase
             .from('cart_items')
-            .upsert({
+            .upsert([{
                 user_id: userId,
                 service_id: item.service_id,
-                quantity: 1,
-            }, { onConflict: ['user_id', 'service_id'] });
-
+                quantity: 1
+            }], { onConflict: ['user_id', 'service_id'] });
 
         if (insertError) {
             console.error("Move to cart error:", insertError);
             setError(`Failed to move item to cart: ${insertError.message}`);
-            setWishlistItems(prev => prev.map(i => 
+            setWishlistItems(prev => prev.map(i =>
                 i.id === item.id ? { ...i, isUpdating: false } : i
             ));
             return;
         }
 
-        // 2. Remove from Wishlist Items
+        // Remove from Wishlist
         const { error: deleteError } = await supabase
             .from('wishlist_items')
             .delete()
             .eq('id', item.id);
 
         if (deleteError) {
-            console.error("Warning: Failed to delete item from wishlist after moving:", deleteError);
-            // Optionally, show a toast/alert that the delete failed but the move succeeded
+            console.warn("Failed to delete item from wishlist after moving:", deleteError);
         }
-        
-        // 3. Update local state
-        setWishlistItems(prev => prev.filter(i => i.id !== item.id));
 
+        // Update state
+        setWishlistItems(prev => prev.filter(i => i.id !== item.id));
     }, []);
+
 
     // --- Render Loading/Error/Empty States ---
 
@@ -327,15 +325,15 @@ export default function WishlistPage() {
             </div>
         );
     }
-    
+
     if (wishlistItems.length === 0) {
         return (
-            <div className="text-center py-20 bg-white rounded-2xl shadow-2xl max-w-4xl mx-auto mt-10 border-t-8" style={{borderColor: PRIMARY_COLOR}}>
+            <div className="text-center py-20 bg-white rounded-2xl shadow-2xl max-w-4xl mx-auto mt-10 border-t-8" style={{ borderColor: PRIMARY_COLOR }}>
                 <Heart className="w-16 h-16 text-red-500 mx-auto mb-6" />
                 <p className="text-slate-600 text-2xl font-semibold mb-2">Your wishlist is empty.</p>
                 <p className="text-slate-500 mb-6">Start saving the services you love!</p>
-                <a 
-                    href="/site/services" 
+                <a
+                    href="/site/services"
                     className={`inline-block mt-4 px-8 py-3 text-white font-bold rounded-full shadow-lg transition duration-300 hover:scale-[1.05]`}
                     style={{ backgroundColor: PRIMARY_COLOR }}
                 >
@@ -350,7 +348,7 @@ export default function WishlistPage() {
     return (
         <div className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
             <div className="max-w-6xl mx-auto px-4 py-12 sm:py-20">
-                
+
                 {/* Header */}
                 <div className="flex items-center bg-white p-6 rounded-2xl shadow-xl mb-10 border-l-8" style={{ borderColor: PRIMARY_COLOR }}>
                     <Heart className={`w-8 h-8 mr-4 text-red-500`} />
@@ -358,12 +356,12 @@ export default function WishlistPage() {
                         My Saved Services ({wishlistItems.length})
                     </h1>
                 </div>
-                
+
                 {/* Item List */}
                 <div className="space-y-6">
                     {wishlistItems.map((item) => (
-                        <WishlistItemCard 
-                            key={item.id} 
+                        <WishlistItemCard
+                            key={item.id}
                             item={item}
                             onRemove={handleRemoveItem}
                             onMoveToCart={handleMoveToCart}
