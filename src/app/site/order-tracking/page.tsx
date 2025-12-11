@@ -343,16 +343,20 @@ export default function MyOrdersPage() {
           { event: "*", schema: "public", table: "bookings", filter: `user_id=eq.${user.id}` },
           (payload) => {
             const updatedOrder = payload.new as Booking;
-            const deletedId = payload.old?.id;
+            const deletedId = (payload.old as Booking | undefined)?.id;
+
             setOrders((prev) => {
               if (payload.eventType === "INSERT") return [updatedOrder, ...prev];
-              if (payload.eventType === "UPDATE") return prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o));
-              if (payload.eventType === "DELETE") return prev.filter((o) => o.id !== deletedId);
+              if (payload.eventType === "UPDATE")
+                return prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o));
+              if (payload.eventType === "DELETE")
+                return prev.filter((o) => o.id !== deletedId);
               return prev;
             });
           }
         )
         .subscribe();
+
 
       return () => supabase.removeChannel(subscription);
     };
