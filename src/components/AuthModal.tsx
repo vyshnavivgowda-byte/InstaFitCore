@@ -387,7 +387,9 @@ export default function AuthModal({
                   {Array.from({ length: OTP_LEN }).map((_, idx) => (
                     <input
                       key={idx}
-                      ref={(el) => (inputsRef.current[idx] = el)}
+                      ref={(el) => {
+                        inputsRef.current[idx] = el;
+                      }}
                       inputMode="numeric"
                       pattern="\d*"
                       maxLength={1}
