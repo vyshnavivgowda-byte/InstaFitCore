@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -15,13 +16,13 @@ import {
 interface SubMenuItem {
   name: string;
   path: string;
-  icon: JSX.Element;
+  icon: React.ReactNode;
 }
 
 interface MenuItem {
   name: string;
   path?: string;
-  icon: JSX.Element;
+  icon: React.ReactNode;
   children?: SubMenuItem[];
 }
 
@@ -53,8 +54,7 @@ export default function AdminSidebar() {
           <Link
             href={item.path!}
             className={`
-              flex items-center gap-3 px-5 py-3 rounded-xl text-sm font-medium
-              transition-all
+              flex items-center gap-3 px-5 py-3 rounded-xl text-sm font-medium transition-all
               ${
                 pathname === item.path
                   ? "bg-white text-gray-900 shadow-lg"
