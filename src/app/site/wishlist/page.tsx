@@ -271,7 +271,7 @@ export default function WishlistPage() {
                 user_id: userId,
                 service_id: item.service_id,
                 quantity: 1
-            }], { onConflict: ['user_id', 'service_id'] });
+            }], { onConflict: 'user_id,service_id' });
 
         if (insertError) {
             console.error("Move to cart error:", insertError);
