@@ -74,7 +74,7 @@ export type ServiceReview = {
 type ServiceStats = {
   averageRating: number | null;
   reviewCount: number;
-  reviews: ServiceReview[];
+reviews: SubcategoryReview[];
 };
 
 // ------------------- UTILITY FUNCTIONS -------------------
@@ -206,7 +206,7 @@ const fetchReviewsForSubcategory = useCallback(async (subcategoryName: string) =
 
   const { data: reviewsData, error } = await supabase
     .from("service_reviews")
-    .select("id, rating, service_id")
+.select("id, rating, employee_name, service_details, created_at, images, service_id")
     .eq("is_approved", true);
 
   if (error) {

@@ -481,10 +481,10 @@ export default function ProfilePage() {
                                             value={areaZone}
                                             onChange={(e) => setAreaZone(e.target.value)}
                                             className="form-input block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150"
-  style={{
-        borderColor: BORDER_COLOR,
-        ['--tw-ring-color' as any]: PRIMARY_COLOR,   // ✔ TS-safe
-    }}                                            disabled={isSaving}
+                                            style={{
+                                                borderColor: BORDER_COLOR,
+                                                ['--tw-ring-color' as any]: PRIMARY_COLOR,   // ✔ TS-safe
+                                            }} disabled={isSaving}
                                         />
                                     </div>
                                 </div>
