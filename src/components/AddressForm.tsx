@@ -88,7 +88,7 @@ export default function AdminSidebar() {
               {/* Children */}
               {item.children && openMenus[item.label] && (
                 <div className="ml-6 flex flex-col gap-2">
-                  {item.children.map((sub: SidebarChild) => (
+                  {item.children.map((sub) => (
                     <Link
                       key={sub.path}
                       href={sub.path}
