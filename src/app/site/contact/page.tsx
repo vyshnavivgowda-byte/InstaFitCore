@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Mail, Phone, MapPin, Send, Star } from "lucide-react";
+import { Mail, Phone, MapPin, Send, Star, LucideIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase-client";
 
 // --- CUSTOM COLOR CONSTANTS ---
@@ -10,6 +10,34 @@ const ACCENT_COLOR = "text-[#8ed26b]";
 const BG_ACCENT = "bg-[#8ed26b]";
 const HOVER_ACCENT = "hover:bg-[#76c55d]";
 const LIGHT_BG = "bg-[#f2faee]";
+
+// --- ContactInfoCard Props ---
+type ContactInfoCardProps = {
+  icon: LucideIcon; // type for lucide-react icon
+  title: string;
+  content: string | JSX.Element;
+  link?: string;
+};
+
+const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ icon: Icon, title, content, link }) => (
+  <div className="flex items-start space-x-4">
+    <div className={`p-3 rounded-full ${LIGHT_BG} ${ACCENT_COLOR}`}>
+      <Icon className="w-6 h-6" />
+    </div>
+    <div>
+      <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
+      <p className="text-gray-600">
+        {link ? (
+          <a href={link} className={`font-medium ${ACCENT_COLOR} hover:underline`}>
+            {content}
+          </a>
+        ) : (
+          content
+        )}
+      </p>
+    </div>
+  </div>
+);
 
 export default function ContactPage() {
   // Contact form state
@@ -27,17 +55,13 @@ export default function ContactPage() {
   const [testSuccess, setTestSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✨ Insert Contact form into Supabase
+  // --- Contact form submission ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     const { error } = await supabase.from("contact_messages").insert([
-      {
-        name,
-        email,
-        message,
-      },
+      { name, email, message },
     ]);
 
     setLoading(false);
@@ -48,7 +72,6 @@ export default function ContactPage() {
       return;
     }
 
-    // Success
     setSuccess(true);
     setName("");
     setEmail("");
@@ -57,7 +80,7 @@ export default function ContactPage() {
     setTimeout(() => setSuccess(false), 5000);
   };
 
-  // ⭐ Insert Testimonial into Supabase
+  // --- Testimonial submission ---
   const handleTestimonialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -67,11 +90,7 @@ export default function ContactPage() {
     }
 
     const { error } = await supabase.from("testimonials").insert([
-      {
-        name: testimonialName,
-        message: testimonialMessage,
-        rating,
-      },
+      { name: testimonialName, message: testimonialMessage, rating },
     ]);
 
     if (error) {
@@ -88,29 +107,8 @@ export default function ContactPage() {
     setTimeout(() => setTestSuccess(false), 4500);
   };
 
-  const ContactInfoCard = ({ icon: Icon, title, content, link }) => (
-    <div className="flex items-start space-x-4">
-      <div className={`p-3 rounded-full ${LIGHT_BG} ${ACCENT_COLOR}`}>
-        <Icon className="w-6 h-6" />
-      </div>
-      <div>
-        <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
-        <p className="text-gray-600">
-          {link ? (
-            <a href={link} className={`font-medium ${ACCENT_COLOR} hover:underline`}>
-              {content}
-            </a>
-          ) : (
-            content
-          )}
-        </p>
-      </div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-gray-50">
-
       {/* HERO */}
       <section className={`relative h-64 md:h-72 ${BG_ACCENT} flex items-center justify-center shadow-lg`}>
         <div className="text-center px-4">
@@ -170,8 +168,6 @@ export default function ContactPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-
-              {/* Name */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">Full Name</label>
                 <input
@@ -184,7 +180,6 @@ export default function ContactPage() {
                 />
               </div>
 
-              {/* Email */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">Email</label>
                 <input
@@ -197,7 +192,6 @@ export default function ContactPage() {
                 />
               </div>
 
-              {/* Message */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">Message</label>
                 <textarea
@@ -210,7 +204,6 @@ export default function ContactPage() {
                 />
               </div>
 
-              {/* Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -234,11 +227,10 @@ export default function ContactPage() {
               allowFullScreen
               referrerPolicy="no-referrer-when-downgrade"
             />
-
           </div>
         </div>
 
-        {/* ⭐ TESTIMONIAL FORM */}
+        {/* TESTIMONIAL FORM */}
         <div className="max-w-4xl mx-auto px-4 mt-16 bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
           <h3 className="text-3xl font-bold mb-6 text-gray-800">Share Your Experience</h3>
 
@@ -249,8 +241,6 @@ export default function ContactPage() {
           )}
 
           <form onSubmit={handleTestimonialSubmit} className="space-y-6">
-
-            {/* Name */}
             <input
               type="text"
               placeholder="Your Name"
@@ -260,14 +250,12 @@ export default function ContactPage() {
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-[#8ed26b]"
             />
 
-            {/* Rating */}
             <div className="flex space-x-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
                   size={30}
-                  className={`cursor-pointer transition ${rating >= star ? "text-yellow-400" : "text-gray-300"
-                    }`}
+                  className={`cursor-pointer transition ${rating >= star ? "text-yellow-400" : "text-gray-300"}`}
                   fill={rating >= star ? "currentColor" : "none"}
                   stroke="currentColor"
                   onClick={() => setRating(star)}
@@ -275,8 +263,6 @@ export default function ContactPage() {
               ))}
             </div>
 
-
-            {/* Comment */}
             <textarea
               rows={4}
               placeholder="Write your testimonial..."
@@ -286,7 +272,6 @@ export default function ContactPage() {
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-[#8ed26b]"
             />
 
-            {/* Button */}
             <button
               type="submit"
               className={`w-full py-3 rounded-xl text-white font-semibold ${BG_ACCENT} ${HOVER_ACCENT}`}
