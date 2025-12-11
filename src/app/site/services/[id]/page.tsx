@@ -431,10 +431,11 @@ export default function ServiceDetailsPage() {
   const filteredAndSortedServices = useMemo(() => {
     let list = [...services];
     if (searchText) list = list.filter((x) => x.service_name.toLowerCase().includes(searchText.toLowerCase()));
-    if (activeFilter) llist = list.filter((x) => {
-      const price = (x as any)[activeFilter + "_price"];
-      return price && price > 0;
-    });
+    if (activeFilter) list = list.filter((x) => {
+  const price = (x as any)[activeFilter + "_price"];
+  return price && price > 0;
+});
+
 
     if (sortBy === "price_asc") list.sort((a, b) => getBasePrice(a) - getBasePrice(b));
     else if (sortBy === "price_desc") list.sort((a, b) => getBasePrice(b) - getBasePrice(a));
