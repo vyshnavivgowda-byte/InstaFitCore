@@ -104,7 +104,8 @@ export default function ServicesPage() {
   const typeId = searchParams.get("typeId");
   const { toast } = useToast();
   const router = useRouter();
-
+// Add this near your other useState hooks
+const [isBookingLoading, setIsBookingLoading] = useState(false);
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -782,13 +783,16 @@ export default function ServicesPage() {
       )}
 
       {/* BOOKING MODAL (existing) */}
-      {selectedService && (
-        <BookServiceModal
-          service={selectedService}
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-userEmail={userEmail || ''}        />
-      )}
+         {selectedService && (
+     <BookServiceModal
+       service={selectedService}
+       isOpen={modalOpen}
+       onClose={() => setModalOpen(false)}
+       userEmail={userEmail || ''}
+       isLoading={isBookingLoading}  // Add this line
+     />
+   )}
+   
     </div>
   );
 }
