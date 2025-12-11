@@ -187,10 +187,13 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
     });
   };
 
-  const toggleAllServices = () => {
-    const availableTypes = SERVICE_TYPES.filter(opt => service[opt.priceKey]! > 0).map(opt => opt.key);
-    setServiceTypes(prev => prev.length === availableTypes.length ? [] : availableTypes);
-  };
+const toggleAllServices = () => {
+  const availableTypes = SERVICE_TYPES
+    .filter(opt => Number(service[opt.priceKey]) > 0) // <-- cast to number
+    .map(opt => opt.key);
+  setServiceTypes(prev => prev.length === availableTypes.length ? [] : availableTypes);
+};
+
 
   const validateForm = () => {
     const newErrors: FormErrors = {};
