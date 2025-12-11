@@ -49,6 +49,7 @@ type ServiceItem = {
   category: string;
   subcategory: string;
   service_name: string;
+  [key: string]: any;
   image_url: string | null;
   installation_price: number | null;
   dismantling_price: number | null;
@@ -74,7 +75,7 @@ export type ServiceReview = {
 type ServiceStats = {
   averageRating: number | null;
   reviewCount: number;
-reviews: ServiceReview[];
+  reviews: ServiceReview[];
 };
 
 // ------------------- UTILITY FUNCTIONS -------------------
@@ -195,85 +196,85 @@ export default function ServiceDetailsPage() {
   const disabledClass = "opacity-50 cursor-not-allowed";
 
   // ------------------- FETCH REVIEWS FOR SUBCATEGORY -------------------
-const fetchReviewsForSubcategory = useCallback(async (subcategoryName: string) => {
-  const { data: serviceIdsData } = await supabase
-    .from("services")
-    .select("id")
-    .eq("subcategory", subcategoryName);
+  const fetchReviewsForSubcategory = useCallback(async (subcategoryName: string) => {
+    const { data: serviceIdsData } = await supabase
+      .from("services")
+      .select("id")
+      .eq("subcategory", subcategoryName);
 
-  const serviceIds = serviceIdsData?.map((s) => s.id) || [];
-  if (!serviceIds.length) return;
+    const serviceIds = serviceIdsData?.map((s) => s.id) || [];
+    if (!serviceIds.length) return;
 
-  const { data: reviewsData, error } = await supabase
-    .from("service_reviews")
-.select("id, rating, employee_name, service_details, created_at, images, service_id")
-    .eq("is_approved", true);
+    const { data: reviewsData, error } = await supabase
+      .from("service_reviews")
+      .select("id, rating, employee_name, service_details, created_at, images, service_id")
+      .eq("is_approved", true);
 
-  if (error) {
-    console.error("Error fetching reviews:", error);
-    return;
-  }
-
-  const ratingsMap: Record<number, { sum: number; count: number }> = {};
-
-  reviewsData.forEach((review) => {
-    if (!review.service_id) return;
-    if (!serviceIds.includes(review.service_id)) return;
-
-    if (!ratingsMap[review.service_id]) {
-      ratingsMap[review.service_id] = { sum: 0, count: 0 };
+    if (error) {
+      console.error("Error fetching reviews:", error);
+      return;
     }
 
-    ratingsMap[review.service_id].sum += review.rating;
-    ratingsMap[review.service_id].count++;
-  });
+    const ratingsMap: Record<number, { sum: number; count: number }> = {};
 
-  // Build averageRatings per service
-  const avgRatings: Record<number, number> = {};
-  Object.keys(ratingsMap).forEach((sid) => {
-    avgRatings[+sid] =
-      ratingsMap[+sid].sum / ratingsMap[+sid].count;
-  });
+    reviewsData.forEach((review) => {
+      if (!review.service_id) return;
+      if (!serviceIds.includes(review.service_id)) return;
 
-  setAverageRatings(avgRatings);
+      if (!ratingsMap[review.service_id]) {
+        ratingsMap[review.service_id] = { sum: 0, count: 0 };
+      }
 
-  // Subcategory summary
-  const allSubcategoryReviews = reviewsData.filter(
-    (r) => serviceIds.includes(r.service_id)
-  );
+      ratingsMap[review.service_id].sum += review.rating;
+      ratingsMap[review.service_id].count++;
+    });
 
-  const totalRating = allSubcategoryReviews.reduce(
-    (sum, r) => sum + r.rating,
-    0
-  );
+    // Build averageRatings per service
+    const avgRatings: Record<number, number> = {};
+    Object.keys(ratingsMap).forEach((sid) => {
+      avgRatings[+sid] =
+        ratingsMap[+sid].sum / ratingsMap[+sid].count;
+    });
 
-  setServiceStats({
-    averageRating:
-      allSubcategoryReviews.length > 0
-        ? totalRating / allSubcategoryReviews.length
-        : null,
-    reviewCount: allSubcategoryReviews.length,
-    reviews: allSubcategoryReviews,
-  });
-}, []);
+    setAverageRatings(avgRatings);
+
+    // Subcategory summary
+    const allSubcategoryReviews = reviewsData.filter(
+      (r) => serviceIds.includes(r.service_id)
+    );
+
+    const totalRating = allSubcategoryReviews.reduce(
+      (sum, r) => sum + r.rating,
+      0
+    );
+
+    setServiceStats({
+      averageRating:
+        allSubcategoryReviews.length > 0
+          ? totalRating / allSubcategoryReviews.length
+          : null,
+      reviewCount: allSubcategoryReviews.length,
+      reviews: allSubcategoryReviews,
+    });
+  }, []);
 
 
   // ------------------- FETCH REVIEWS FOR A SERVICE -------------------
   const fetchReviewsForService = useCallback(async (serviceId: number) => {
-  const { data, error } = await supabase
-    .from("service_reviews")
-    .select("id, rating, employee_name, service_details, created_at, images")
-    .eq("is_approved", true)
-    .eq("service_id", serviceId)
-    .order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("service_reviews")
+      .select("id, rating, employee_name, service_details, created_at, images")
+      .eq("is_approved", true)
+      .eq("service_id", serviceId)
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Error loading service reviews:", error);
-    setReviewsForService([]);
-  } else {
-    setReviewsForService(data || []);
-  }
-}, []);
+    if (error) {
+      console.error("Error loading service reviews:", error);
+      setReviewsForService([]);
+    } else {
+      setReviewsForService(data || []);
+    }
+  }, []);
 
 
   const handleSeeReviews = (service: ServiceItem) => {
@@ -430,7 +431,11 @@ const fetchReviewsForSubcategory = useCallback(async (subcategoryName: string) =
   const filteredAndSortedServices = useMemo(() => {
     let list = [...services];
     if (searchText) list = list.filter((x) => x.service_name.toLowerCase().includes(searchText.toLowerCase()));
-    if (activeFilter) list = list.filter((x) => x[activeFilter + "_price"] && x[activeFilter + "_price"] > 0);
+    if (activeFilter) llist = list.filter((x) => {
+      const price = (x as any)[activeFilter + "_price"];
+      return price && price > 0;
+    });
+
     if (sortBy === "price_asc") list.sort((a, b) => getBasePrice(a) - getBasePrice(b));
     else if (sortBy === "price_desc") list.sort((a, b) => getBasePrice(b) - getBasePrice(a));
     else list.sort((a, b) => a.service_name.localeCompare(b.service_name));
@@ -492,11 +497,11 @@ const fetchReviewsForSubcategory = useCallback(async (subcategoryName: string) =
             <input type="text" placeholder="Search services..." value={searchText} onChange={(e) => setSearchText(e.target.value)} className={`w-full p-3 pl-10 border border-gray-300 rounded-xl shadow-sm ${ACCENT_RING}`} />
           </div>
 
-         <div className="flex space-x-2 overflow-x-auto py-1">
-  <FilterButton label="Installation" active={activeFilter === "installation"} onClick={() => setActiveFilter(activeFilter === "installation" ? null : "installation")} />
-  <FilterButton label="Dismantling" active={activeFilter === "dismantling"} onClick={() => setActiveFilter(activeFilter === "dismantling" ? null : "dismantling")} />
-  <FilterButton label="Repair" active={activeFilter === "repair"} onClick={() => setActiveFilter(activeFilter === "repair" ? null : "repair")} />
-</div>
+          <div className="flex space-x-2 overflow-x-auto py-1">
+            <FilterButton label="Installation" active={activeFilter === "installation"} onClick={() => setActiveFilter(activeFilter === "installation" ? null : "installation")} />
+            <FilterButton label="Dismantling" active={activeFilter === "dismantling"} onClick={() => setActiveFilter(activeFilter === "dismantling" ? null : "dismantling")} />
+            <FilterButton label="Repair" active={activeFilter === "repair"} onClick={() => setActiveFilter(activeFilter === "repair" ? null : "repair")} />
+          </div>
 
 
           <div className="flex items-center space-x-4">
@@ -564,15 +569,15 @@ const fetchReviewsForSubcategory = useCallback(async (subcategoryName: string) =
                         <ShoppingCart className="w-5 h-5" />
                       </button>
 
-<button
-  onClick={() => handleBookClick(item)}
-  disabled={!isAuthenticated}
-  className={`flex-grow p-3 rounded-xl text-white font-semibold flex items-center justify-center shadow-lg transition-colors ${!isAuthenticated ? "bg-gray-400 opacity-50 cursor-not-allowed" : ""}`}
-  style={isAuthenticated ? { backgroundColor: PRIMARY_COLOR, hover: { backgroundColor: HOVER_COLOR } } : {}}
->
-  Book Now
-  <ArrowRight className="w-4 h-4 ml-2" />
-</button>
+                      <button
+                        onClick={() => handleBookClick(item)}
+                        disabled={!isAuthenticated}
+                        className={`flex-grow p-3 rounded-xl text-white font-semibold flex items-center justify-center shadow-lg transition-colors ${!isAuthenticated ? "bg-gray-400 opacity-50 cursor-not-allowed" : ""}`}
+                        style={isAuthenticated ? { backgroundColor: PRIMARY_COLOR, hover: { backgroundColor: HOVER_COLOR } } : {}}
+                      >
+                        Book Now
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </button>
                     </div>
                     {!isAuthenticated && <p className="text-xs text-red-500 mt-2 text-center">Sign in to add to wishlist or cart</p>}
                   </div>
