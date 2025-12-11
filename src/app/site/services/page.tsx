@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 import { useToast } from "@/components/Toast";
@@ -99,13 +99,13 @@ const renderStars = (rating: number) => {
 };
 
 // --- COMPONENT ---
-export default function ServicesPage() {
+function ServicesPageContent() {
   const searchParams = useSearchParams();
   const typeId = searchParams.get("typeId");
   const { toast } = useToast();
   const router = useRouter();
-// Add this near your other useState hooks
-const [isBookingLoading, setIsBookingLoading] = useState(false);
+  // Add this near your other useState hooks
+  const [isBookingLoading, setIsBookingLoading] = useState(false);
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -446,8 +446,7 @@ const [isBookingLoading, setIsBookingLoading] = useState(false);
                     className="bg-white rounded-2xl shadow-lg p-5 flex flex-col relative"
                   >
                     {/* Wishlist Heart */}
-                    <button
-                      onClick={() => toggleWishlist(service.id)}
+                    <button                       onClick={() => toggleWishlist(service.id)}
                       className={`absolute top-3 right-3 z-20 p-2 rounded-full shadow-md transition-colors 
                                                 ${isWishlisted ? "bg-red-500 text-white" : "bg-white text-gray-500 hover:text-red-500"} 
                                                 ${!isAuthenticated ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -794,5 +793,14 @@ const [isBookingLoading, setIsBookingLoading] = useState(false);
    )}
    
     </div>
+  );
+}
+
+// UPDATED: Main export now wraps the inner component in Suspense
+export default function ServicesPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-10">Loading services...</div>}>
+      <ServicesPageContent />
+    </Suspense>
   );
 }

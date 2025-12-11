@@ -371,9 +371,9 @@ const toggleAllServices = () => {
 
   if (!isOpen) return null;
 
-  const availableServices = SERVICE_TYPES.filter(opt => service[opt.priceKey]! > 0);
+const availableServices = SERVICE_TYPES.filter(opt => Number(service[opt.priceKey]) > 0);
   // Type guard for nested address errors
-  const addressErrors = typeof errors.address === 'object' ? errors.address : {};
+  const addressErrors: Partial<Record<keyof ServiceAddress, string>> = typeof errors.address === 'object' && errors.address ? errors.address : {};
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">

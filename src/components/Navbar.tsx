@@ -23,7 +23,7 @@ type Category = {
   image_url: string | null;
 };
 
-type AuthMode = "login" | "register" | "forgot";
+type AuthMode = "login" | "register";
 
 export default function FullNavbar() {
   // Shared states
@@ -428,8 +428,7 @@ export default function FullNavbar() {
       <AuthModal
         showAuth={showAuth}
         setShowAuth={setShowAuth}
-        mode={mode}
-        setMode={setMode}
+        initialMode={mode}
       />
     </>
   );

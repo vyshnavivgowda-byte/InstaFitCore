@@ -1,6 +1,6 @@
 // components/ServiceDetailsPage.tsx
 "use client";
-
+import { useSearchParams } from "next/navigation";
 import BookServiceModal from "@/components/BookServiceModal";
 import ReviewModal from "@/components/ReviewModal";
 import { useEffect, useState, useMemo, useCallback } from "react";

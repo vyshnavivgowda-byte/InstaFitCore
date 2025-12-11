@@ -1,5 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
+export const dynamic = "force-dynamic";
+
+import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,9 +14,9 @@ export async function POST(req: Request) {
     const { category, description, image_url, location, is_active } = body;
 
     const { data, error } = await supabaseAdmin
-      .from('categories')
+      .from("categories")
       .insert([{ category, description, image_url, location, is_active }])
-      .select('id')
+      .select("id")
       .single();
 
     if (error) {
@@ -23,6 +25,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json(data, { status: 200 });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Something went wrong' }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message || "Something went wrong" },
+      { status: 500 }
+    );
   }
 }
