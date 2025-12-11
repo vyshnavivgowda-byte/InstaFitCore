@@ -13,11 +13,12 @@ const LIGHT_BG = "bg-[#f2faee]";
 
 // --- ContactInfoCard Props ---
 type ContactInfoCardProps = {
-  icon: LucideIcon; // type for lucide-react icon
+  icon: LucideIcon;
   title: string;
-  content: string | JSX.Element;
+  content: string | React.ReactNode; // safer than JSX.Element
   link?: string;
 };
+
 
 const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ icon: Icon, title, content, link }) => (
   <div className="flex items-start space-x-4">
