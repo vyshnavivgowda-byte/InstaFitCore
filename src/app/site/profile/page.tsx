@@ -346,16 +346,20 @@ export default function ProfilePage() {
                                     <label htmlFor="username" className="block text-lg font-medium text-gray-700 mb-2">
                                         Name / Customer Full Name
                                     </label>
-                                    <input
-                                        id="username"
-                                        type="text"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        className="form-input block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150"
-                                        style={{ borderColor: BORDER_COLOR, '--tw-ring-color': PRIMARY_COLOR }}
-                                        required
-                                        disabled={isSaving}
-                                    />
+                                  <input
+    id="username"
+    type="text"
+    value={username}
+    onChange={(e) => setUsername(e.target.value)}
+    className="form-input block w-full px-4 py-3 border rounded-xl shadow-inner focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150"
+    style={{
+        borderColor: BORDER_COLOR,
+        ['--tw-ring-color' as any]: PRIMARY_COLOR,
+    } as React.CSSProperties}
+    required
+    disabled={isSaving}
+/>
+
                                 </div>
                                 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
