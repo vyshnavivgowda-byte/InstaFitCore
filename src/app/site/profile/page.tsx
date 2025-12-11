@@ -368,16 +368,20 @@ export default function ProfilePage() {
                                         <label htmlFor="phone_number" className="block text-lg font-medium text-gray-700 mb-2">
                                             <Phone className="w-4 h-4 inline mr-2 text-gray-500" /> Mobile Number
                                         </label>
-                                        <input
-                                            id="phone_number"
-                                            type="tel"
-                                            value={phoneNumber}
-                                            onChange={(e) => setPhoneNumber(e.target.value)}
-                                            className="form-input block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150"
-                                            style={{ borderColor: BORDER_COLOR, '--tw-ring-color': PRIMARY_COLOR }}
-                                            disabled={isSaving}
-                                            placeholder="Primary Mobile"
-                                        />
+                                       <input
+    id="phone_number"
+    type="tel"
+    value={phoneNumber}
+    onChange={(e) => setPhoneNumber(e.target.value)}
+    className="form-input block w-full px-4 py-3 border rounded-xl shadow-inner focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150"
+    style={{
+        borderColor: BORDER_COLOR,
+        ['--tw-ring-color' as any]: PRIMARY_COLOR, // TypeScript-safe
+    } as React.CSSProperties}
+    disabled={isSaving}
+    placeholder="Primary Mobile"
+/>
+
                                     </div>
                                   
                                 </div>
