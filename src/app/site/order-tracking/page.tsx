@@ -59,6 +59,7 @@ const formatTime = (timeString: string) => {
 // --- Types ---
 type Booking = {
   id: number;
+  order_no: string;
   user_id: string | null;
   customer_name: string;
   service_name: string;
@@ -184,7 +185,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ order, onClose, onSubmit }) =
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <p className="text-slate-600">
-            How was the service for <strong>{order.service_name} (Order #{order.id})</strong>?
+            How was the service for <strong>{order.service_name} (Order #{order.order_no})
+</strong>?
           </p>
 
           {/* Star Rating */}
@@ -446,9 +448,12 @@ export default function MyOrdersPage() {
     [selectedOrderToReview, toast]
   );
 
-  const filteredOrders = orders.filter(
-    (order) => searchQuery === "" || order.id.toString().includes(searchQuery)
-  );
+ const filteredOrders = orders.filter(
+  (order) =>
+    searchQuery === "" ||
+    order.order_no?.includes(searchQuery)
+);
+
 
   // --- OrderCard Component (Full) ---
   const OrderCard = ({ order }: { order: Booking }) => {
@@ -475,7 +480,8 @@ export default function MyOrdersPage() {
             </span>
           </div>
           <p className="text-slate-500 mt-2 sm:mt-0 flex items-center text-sm">
-            <Hash className="w-4 h-4 mr-1 text-slate-400" /> Order ID: <span className="font-mono ml-1 font-semibold">{order.id}</span>
+            <Hash className="w-4 h-4 mr-1 text-slate-400" /> Order ID: <span className="font-mono ml-1 font-semibold">{order.order_no}
+</span>
           </p>
         </div>
 

@@ -31,6 +31,7 @@ type ServiceItem = {
   installation_price: number | null;
   dismantling_price: number | null;
   repair_price: number | null;
+  preferred_timings?: string[];
 };
 
 type Props = {
@@ -141,8 +142,11 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
   const router = useRouter();
   const { toast } = useToast();
 
-  const today = new Date();
-  const minDate = today.toISOString().split("T")[0];
+  const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+const minDate = tomorrow.toISOString().split("T")[0];
+
+  const [timings, setTimings] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -155,6 +159,54 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
       setSubmissionStatus('idle');
     }
   }, [isOpen]);
+
+useEffect(() => {
+  if (service && service.id) {
+    const fetchTimings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("services")
+          .select("preferred_timings")
+          .eq("id", service.id)
+          .single();
+
+        if (error) throw error;
+        if (data?.preferred_timings) setTimings(data.preferred_timings);
+      } catch (err) {
+        console.error("Failed to fetch timings:", err);
+        toast({
+          title: "Error",
+          description: "Could not load available timings.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchTimings();
+  }
+}, [service]);
+const getFilteredTimings = () => {
+  if (!date) return timings;
+
+  const now = new Date();
+  const selectedDate = new Date(date);
+
+  // If selected date is in the future → allow all timings
+  if (selectedDate.toDateString() !== now.toDateString()) {
+    return timings;
+  }
+
+  // If selected date is today → filter past times
+  const currentMinutes =
+    now.getHours() * 60 + now.getMinutes();
+
+  return timings.filter((t) => {
+    const [hour, minute] = t.split(":").map(Number);
+    const timingMinutes = hour * 60 + minute;
+    return timingMinutes > currentMinutes;
+  });
+};
+
 
   // Helper for address input changes
   const handleAddressChange = (field: keyof ServiceAddress, value: string) => {
@@ -418,14 +470,40 @@ const availableServices = SERVICE_TYPES.filter(opt => Number(service[opt.priceKe
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div>
             <label className="block mb-2 font-medium text-gray-700 flex items-center"><Calendar className="w-4 h-4 mr-1.5" style={{ color: PRIMARY_COLOR }} /> Date</label>
-            <input type="date" value={date} min={minDate} onChange={e => { setDate(e.target.value); setErrors(prev => { const { date, ...rest } = prev; return rest; }); }} className={`w-full border rounded-lg px-4 py-3 focus:ring-2 transition ${errors.date ? 'border-red-500' : 'border-gray-300'}`} style={{ '--tw-ring-color': PRIMARY_COLOR } as React.CSSProperties} />
+            <input type="date" value={date} min={minDate} onChange={e => {
+  setDate(e.target.value);
+  setTime(""); // reset invalid past time
+  setErrors(prev => {
+    const { date, time, ...rest } = prev;
+    return rest;
+  });
+}}
+ className={`w-full border rounded-lg px-4 py-3 focus:ring-2 transition ${errors.date ? 'border-red-500' : 'border-gray-300'}`} style={{ '--tw-ring-color': PRIMARY_COLOR } as React.CSSProperties} />
             {errors.date && <p className="text-red-500 mt-1 text-sm">{errors.date}</p>}
           </div>
-          <div>
-            <label className="block mb-2 font-medium text-gray-700 flex items-center"><Clock className="w-4 h-4 mr-1.5" style={{ color: PRIMARY_COLOR }} /> Time</label>
-            <input type="time" value={time} onChange={e => { setTime(e.target.value); setErrors(prev => { const { time, ...rest } = prev; return rest; }); }} className={`w-full border rounded-lg px-4 py-3 focus:ring-2 transition ${errors.time ? 'border-red-500' : 'border-gray-300'}`} style={{ '--tw-ring-color': PRIMARY_COLOR } as React.CSSProperties} />
-            {errors.time && <p className="text-red-500 mt-1 text-sm">{errors.time}</p>}
-          </div>
+<div>
+  <label className="block mb-2 font-medium text-gray-700 flex items-center">
+    <Clock className="w-4 h-4 mr-1.5" style={{ color: PRIMARY_COLOR }} /> Time
+  </label>
+  <select
+    value={time}
+    onChange={e => { setTime(e.target.value); setErrors(prev => { const { time, ...rest } = prev; return rest; }); }}
+    className={`w-full border rounded-lg px-4 py-3 focus:ring-2 transition ${errors.time ? 'border-red-500' : 'border-gray-300'}`}
+    style={{ '--tw-ring-color': PRIMARY_COLOR } as React.CSSProperties}
+  >
+    <option value="">Select Time</option>
+    {getFilteredTimings().length > 0 ? (
+  getFilteredTimings().map(t => (
+    <option key={t} value={t}>{t}</option>
+  ))
+) : (
+  <option disabled>No available timings</option>
+)}
+
+  </select>
+  {errors.time && <p className="text-red-500 mt-1 text-sm">{errors.time}</p>}
+</div>
+
         </div>
 
         {/* REF: Address Section - REPLACED WITH STRUCTURED FIELDS */}

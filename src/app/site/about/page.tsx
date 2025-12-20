@@ -62,8 +62,9 @@ export default function AboutPage() {
             Who We Are
           </h2>
           <p className="text-gray-700 text-base sm:text-lg md:text-xl max-w-4xl mx-auto leading-relaxed">
-            At <span className={`font-semibold ${ACCENT_COLOR}`}>InstaFitCore Solutions Pvt Ltd.</span>, we revolutionize furniture installation and assembly for homes and offices. Certified professionals deliver precise, reliable service for all furniture types. Leveraging technology, every project is executed with excellence, on time, and with unmatched care.
+            At <span className={`font-semibold ${ACCENT_COLOR}`}>InstaFitCore Solutions Pvt. Ltd.</span>, we deliver end-to-end furniture and home service solutions for residential and commercial spaces. From last-mile delivery to professional installation and completion, our certified professionals ensure every project is executed with precision, safety, and accountability. We specialize in customized modular furniture, modular kitchen solutions, packers & movers, and B2B service operations, all powered by a technology-driven platform. Our commitment is to provide consistent quality, timely execution, and a seamless customer experience across every engagement.
           </p>
+
         </div>
 
         {/* Our Mission */}
@@ -73,18 +74,18 @@ export default function AboutPage() {
               Our Mission
             </h2>
             <p className="text-gray-700 text-base sm:text-lg max-w-3xl mx-auto leading-relaxed">
-              To simplify furniture setup through{" "}
-              <strong>trust, technology, and transparency</strong>. We empower customers with peace of mind, delivering these core tenets:
+              At <span className={`font-semibold ${ACCENT_COLOR}`}>InstaFitCore Solutions Pvt. Ltd.</span>, we simplify furniture and home services through <strong>trust, technology, and transparency</strong>, delivering reliable outcomes and complete peace of mind. By combining skilled workmanship with structured processes, we elevate service standards across the industry and ensure every customer experience is seamless and dependable.
             </p>
+
           </div>
 
           {/* Mission Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 md:gap-x-12 md:gap-y-8 max-w-5xl mx-auto">
             {[
-              { title: "Professional & Punctual Service", desc: "Every time, without fail, by certified experts." },
-              { title: "Fair & Transparent Pricing", desc: "Clear, upfront costs with no hidden fees." },
-              { title: "Real-Time Updates & Digital Invoices", desc: "Stay informed every step of the way." },
-              { title: "Empowering Skilled Technicians", desc: "Building better livelihoods and opportunities." },
+              { title: "Professional & Punctual Service", desc: "Services delivered by trained and certified professionals with a strong focus on quality, safety, and on-time completion." },
+              { title: "End-to-End Execution", desc: "From delivery, installation, and setup to modular kitchens, relocation services, and post-service support, we manage the entire service lifecycle." },
+              { title: "Fair & Transparent Pricing", desc: "Clear and upfront pricing with no hidden charges, ensuring full clarity before service confirmation." },
+              { title: "Empowering Skilled Technicians", desc: "We invest in training, compliance, and long-term growth opportunities to build a reliable and professional service ecosystem." },
             ].map((item, idx) => (
               <div
                 key={idx}

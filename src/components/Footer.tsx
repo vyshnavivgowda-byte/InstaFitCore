@@ -4,13 +4,13 @@ import React from 'react';
 import { Mail, Phone } from "lucide-react";
 
 const BRAND_ACCENT = "#8ed26b";
-const LOGO_PATH = "/Insta.png"; 
+const LOGO_PATH = "/footerlogo.png";
 
 export default function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-300 pt-20 pb-10 mt-20 border-t border-gray-800 shadow-2xl">
       <div className="max-w-7xl mx-auto px-6">
-        
+
         {/* --- MAIN GRID (Top Section) --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-16 mb-16">
 
@@ -68,28 +68,22 @@ export default function Footer() {
         </div>
 
         {/* --- CENTERED NEED HELP BOX --- */}
-        <div className="flex justify-center w-full">
-          <div className="w-full max-w-2xl bg-gray-800/60 border border-gray-700 rounded-2xl px-8 py-6 shadow-xl text-center">
-            <div className="flex flex-col md:flex-row items-center justify-center gap-y-4 md:gap-x-10 mb-4">
-              <span className="font-bold text-white text-lg">Need help?</span>
-              
-              <div className="flex items-center gap-2 text-gray-300">
-                <Mail className="w-5 h-5" style={{ color: BRAND_ACCENT }} />
-                <a href="mailto:support@instafitcore.com" className="hover:text-white transition-colors">support@instafitcore.com</a>
-              </div>
+        <div className="w-full max-w-4xl mx-auto bg-gray-800/60 border border-gray-700 rounded-full px-8 py-3 shadow-xl flex flex-wrap items-center justify-between gap-4">
+          <span className="font-bold text-white whitespace-nowrap">Need Support?</span>
 
-              <div className="flex items-center gap-2 text-gray-300">
-                <Phone className="w-5 h-5" style={{ color: BRAND_ACCENT }} />
-                <a href="tel:+917349645598" className="hover:text-white transition-colors">+91 734 964 5598</a>
-              </div>
-            </div>
-
-            <div className="text-gray-400 border-t border-gray-700 pt-4">
-              <p>Warm regards,</p>
-              <p className="font-bold text-white text-base">Team InstaFitCore</p>
-              <p className="text-xs italic mt-1 text-gray-500">Your Partner for Fast, Reliable Furniture Services</p>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 text-gray-300">
+              <Mail className="w-4 h-4" style={{ color: BRAND_ACCENT }} />
+              <a href="mailto:support@instafitcore.com" className="hover:text-white transition-colors text-sm">support@instafitcore.com</a>
             </div>
           </div>
+
+          <div className="hidden md:block h-4 w-[1px] bg-gray-700"></div>
+
+          <p className="text-xs text-gray-400">
+            <span className="font-bold text-white mr-1">Team InstaFitCore</span>
+            <span className="italic text-gray-500">— Fast, Reliable Furniture Services</span>
+          </p>
         </div>
 
       </div>

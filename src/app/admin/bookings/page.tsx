@@ -9,6 +9,7 @@ import autoTable from "jspdf-autotable";
 
 type Booking = {
     id: number;
+    order_no: string;
     user_id: string | null;
     customer_name: string;
     service_name: string;
@@ -73,7 +74,7 @@ export default function BookingsPage() {
 
     const downloadExcel = () => {
         const dataToExport = filtered.map(b => ({
-            ID: b.id,
+            "Order No": b.order_no,
             Customer: b.customer_name,
             Service: b.service_name,
             Types: b.service_types.join(", "),
@@ -100,7 +101,7 @@ export default function BookingsPage() {
         doc.text("Bookings Report", 14, 20);
 
         const tableData = filtered.map(b => [
-            b.id,
+            b.order_no,
             b.customer_name,
             b.service_name,
             b.date,
@@ -109,8 +110,9 @@ export default function BookingsPage() {
             b.status
         ]);
 
+
         autoTable(doc, {
-            head: [["ID", "Customer", "Service", "Date", "Time", "Price", "Status"]],
+            head: [["Order No", "Customer", "Service", "Date", "Time", "Price", "Status"]],
             body: tableData,
             startY: 30,
             styles: { fontSize: 8 },
@@ -146,9 +148,12 @@ export default function BookingsPage() {
         if (search.trim() !== "") {
             results = results.filter(
                 (b) =>
-                    b.customer_name.toLowerCase().includes(search.toLowerCase()) ||
-                    b.service_name.toLowerCase().includes(search.toLowerCase())
+                    (b.customer_name?.toLowerCase() || "").includes(search.toLowerCase()) ||
+                    (b.service_name?.toLowerCase() || "").includes(search.toLowerCase()) ||
+                    (b.order_no?.toLowerCase() || "").includes(search.toLowerCase())
             );
+
+
         }
 
         if (statusFilter !== "All Status") {
@@ -255,6 +260,8 @@ export default function BookingsPage() {
         // Disable any option whose index is less than the current status index (i.e., previous steps)
         return optionIndex < currentIndex;
     };
+    const selectedBooking = bookings.find(b => b.id === selectedBookingId);
+
 
     return (
         <div className="p-8 min-h-screen bg-gray-50">
@@ -350,6 +357,8 @@ export default function BookingsPage() {
                 <table className="min-w-full text-left">
                     <thead className="bg-gray-50 border-b border-gray-200">
                         <tr className="text-gray-600 text-sm font-bold uppercase tracking-wider">
+                            <th className="p-4">Order No</th>
+
                             <th className="p-4">Customer</th>
                             <th className="p-4">Service</th>
                             <th className="p-4">Date & Time</th>
@@ -366,6 +375,10 @@ export default function BookingsPage() {
                         ) : (
                             filtered.map((b) => (
                                 <tr key={b.id} className="hover:bg-blue-50/50 transition-colors duration-150">
+                                    <td className="p-4 font-mono text-sm text-gray-700 whitespace-nowrap">
+                                        {b.order_no}
+                                    </td>
+
                                     <td className="p-4 font-semibold">
                                         {b.customer_name}
                                         <div className="text-xs text-gray-500 font-normal mt-0.5">Types: {b.service_types.join(", ")}</div>
@@ -451,7 +464,10 @@ export default function BookingsPage() {
                         {/* Form */}
                         <form onSubmit={assignEmployeeAndProceed} className="space-y-5">
                             <p className="text-gray-600 mb-5">
-                                Enter the service professional's details to confirm that they are <strong>Arriving Today</strong> for Booking ID: <strong>{selectedBookingId}</strong>.
+                                <p className="text-gray-600 mb-5">
+                                    Assign employee for Order No:{" "}
+                                    <strong className="font-mono">{selectedBooking?.order_no}</strong>
+                                </p>
                             </p>
 
                             {/* Employee Name Input */}

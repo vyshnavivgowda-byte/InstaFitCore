@@ -14,6 +14,7 @@ type ServiceItem = {
   installation_price?: number | null;
   dismantling_price?: number | null;
   repair_price?: number | null;
+preferred_timings?: string[]; 
 };
 
 type Subcategory = {
@@ -54,6 +55,28 @@ export default function ServicesAdminPage() {
   const [initialEditItem, setInitialEditItem] = useState<ServiceItem | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [preferredTimings, setPreferredTimings] = useState<string[]>([]);
+const [editPreferredTimings, setEditPreferredTimings] = useState<string[]>([]);
+
+const HOURS = Array.from({ length: 12 }, (_, i) =>
+  String(i + 1).padStart(2, "0")
+);
+
+const MINUTES = Array.from({ length: 12 }, (_, i) =>
+  String(i * 5).padStart(2, "0")
+);
+
+const MERIDIEM = ["AM", "PM"];
+
+const parseTime = (value: string) => {
+  const [time, meridiem] = value.split(" ");
+  const [hour = "01", minute = "00"] = time?.split(":") || [];
+  return { hour, minute, meridiem: meridiem || "AM" };
+};
+
+const buildTime = (hour: string, minute: string, meridiem: string) =>
+  `${hour}:${minute} ${meridiem}`;
+
 
   const convertToBase64 = (file: File) =>
     new Promise<string | null>((resolve, reject) => {
@@ -111,6 +134,21 @@ export default function ServicesAdminPage() {
     fetchSubcategories();
   }, []);
 
+  const addTiming = (timings: string[], setTimings: Function) => {
+  setTimings([...timings, ""]);
+};
+
+const updateTiming = (index: number, value: string, timings: string[], setTimings: Function) => {
+  const newTimings = [...timings];
+  newTimings[index] = value;
+  setTimings(newTimings);
+};
+
+const removeTiming = (index: number, timings: string[], setTimings: Function) => {
+  setTimings(timings.filter((_, i) => i !== index));
+};
+
+
   const validateService = (
     category: string,
     subcategory: string,
@@ -157,6 +195,7 @@ export default function ServicesAdminPage() {
           installation_price: installationPrice || null,
           dismantling_price: dismantlingPrice || null,
           repair_price: repairPrice || null,
+          preferred_timings: preferredTimings, 
           image_url: img,
         },
       ]);
@@ -186,21 +225,32 @@ export default function ServicesAdminPage() {
     setInitialEditItem({ ...item });
     setPreview(item.image_url || null);
     setImageFile(null);
+    setEditPreferredTimings(item.preferred_timings || []); 
     setEditModalOpen(true);
+    setPreferredTimings([]);
+
   };
 
   const hasChanges = () => {
-    if (!editItem || !initialEditItem) return false;
-    return (
-      editItem.category !== initialEditItem.category ||
-      editItem.subcategory !== initialEditItem.subcategory ||
-      editItem.service_name !== initialEditItem.service_name ||
-      editItem.installation_price !== initialEditItem.installation_price ||
-      editItem.dismantling_price !== initialEditItem.dismantling_price ||
-      editItem.repair_price !== initialEditItem.repair_price ||
-      imageFile !== null
-    );
-  };
+  if (!editItem || !initialEditItem) return false;
+
+  return (
+    editItem.category !== initialEditItem.category ||
+    editItem.subcategory !== initialEditItem.subcategory ||
+    editItem.service_name !== initialEditItem.service_name ||
+    editItem.installation_price !== initialEditItem.installation_price ||
+    editItem.dismantling_price !== initialEditItem.dismantling_price ||
+    editItem.repair_price !== initialEditItem.repair_price ||
+
+    // ✅ FIXED: compare the ACTUAL edited timings
+    JSON.stringify(editPreferredTimings || []) !==
+    JSON.stringify(initialEditItem.preferred_timings || []) ||
+
+    imageFile !== null
+  );
+};
+
+
 
   const handleUpdateService = async () => {
     if (!editItem) return;
@@ -232,6 +282,7 @@ export default function ServicesAdminPage() {
           installation_price: editItem.installation_price,
           dismantling_price: editItem.dismantling_price,
           repair_price: editItem.repair_price,
+          preferred_timings: editPreferredTimings,
           image_url: updatedImage,
         })
         .eq("id", editItem.id);
@@ -502,6 +553,82 @@ export default function ServicesAdminPage() {
               className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
             />
           </div>
+<div className="col-span-2 space-y-3">
+  <label className="block font-medium text-gray-700">Preferred Timings</label>
+  <div className="space-y-2">
+   {preferredTimings.map((time, index) => {
+  const { hour, minute, meridiem } = parseTime(time);
+
+  return (
+    <div key={index} className="flex gap-2 items-center">
+      <select
+        value={hour}
+        onChange={(e) =>
+          updateTiming(
+            index,
+            buildTime(e.target.value, minute, meridiem),
+            preferredTimings,
+            setPreferredTimings
+          )
+        }
+        className="border rounded-xl p-2"
+      >
+        {HOURS.map(h => <option key={h}>{h}</option>)}
+      </select>
+
+      <select
+        value={minute}
+        onChange={(e) =>
+          updateTiming(
+            index,
+            buildTime(hour, e.target.value, meridiem),
+            preferredTimings,
+            setPreferredTimings
+          )
+        }
+        className="border rounded-xl p-2"
+      >
+        {MINUTES.map(m => <option key={m}>{m}</option>)}
+      </select>
+
+      <select
+        value={meridiem}
+        onChange={(e) =>
+          updateTiming(
+            index,
+            buildTime(hour, minute, e.target.value),
+            preferredTimings,
+            setPreferredTimings
+          )
+        }
+        className="border rounded-xl p-2"
+      >
+        {MERIDIEM.map(m => <option key={m}>{m}</option>)}
+      </select>
+
+      <button
+        type="button"
+        onClick={() => removeTiming(index, preferredTimings, setPreferredTimings)}
+        className="px-3 py-1 bg-red-500 text-white rounded-xl"
+      >
+        ✕
+      </button>
+    </div>
+  );
+})}
+
+    <button
+      type="button"
+      onClick={() => addTiming(preferredTimings, setPreferredTimings)}
+      className="px-4 py-2 bg-[#8ed26b] text-white rounded-xl hover:bg-[#6ebb53] transition"
+    >
+      + Add Timing
+    </button>
+  </div>
+</div>
+
+
+
         </form>
       </div>
 
@@ -651,6 +778,97 @@ export default function ServicesAdminPage() {
               className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
             />
           </div>
+<div className="col-span-2 space-y-3">
+  <label className="block font-medium text-gray-700">Preferred Timings</label>
+  <div className="space-y-2">
+    {editPreferredTimings.length === 0 && (
+      <p className="text-sm text-gray-500">No timings added yet. Click below to add.</p>
+    )}
+
+    {editPreferredTimings.map((time, index) => {
+  const { hour, minute, meridiem } = parseTime(time);
+
+  return (
+    <div key={index} className="flex gap-2 items-center">
+      {/* Hour */}
+      <select
+        value={hour}
+        onChange={(e) =>
+          updateTiming(
+            index,
+            buildTime(e.target.value, minute, meridiem),
+            editPreferredTimings,
+            setEditPreferredTimings
+          )
+        }
+        className="border rounded-xl p-2"
+      >
+        {HOURS.map(h => (
+          <option key={h} value={h}>{h}</option>
+        ))}
+      </select>
+
+      {/* Minute (5-min gap) */}
+      <select
+        value={minute}
+        onChange={(e) =>
+          updateTiming(
+            index,
+            buildTime(hour, e.target.value, meridiem),
+            editPreferredTimings,
+            setEditPreferredTimings
+          )
+        }
+        className="border rounded-xl p-2"
+      >
+        {MINUTES.map(m => (
+          <option key={m} value={m}>{m}</option>
+        ))}
+      </select>
+
+      {/* AM / PM */}
+      <select
+        value={meridiem}
+        onChange={(e) =>
+          updateTiming(
+            index,
+            buildTime(hour, minute, e.target.value),
+            editPreferredTimings,
+            setEditPreferredTimings
+          )
+        }
+        className="border rounded-xl p-2"
+      >
+        {MERIDIEM.map(m => (
+          <option key={m} value={m}>{m}</option>
+        ))}
+      </select>
+
+      {/* Remove */}
+      <button
+        type="button"
+        onClick={() =>
+          removeTiming(index, editPreferredTimings, setEditPreferredTimings)
+        }
+        className="px-3 py-1 bg-red-500 text-white rounded-xl"
+      >
+        ✕
+      </button>
+    </div>
+  );
+})}
+
+        
+    <button
+      type="button"
+      onClick={() => addTiming(editPreferredTimings, setEditPreferredTimings)}
+      className="px-4 py-2 bg-[#8ed26b] text-white rounded-xl hover:bg-[#6ebb53] transition"
+    >
+      + Add Timing
+    </button>
+  </div>
+</div>
+
         </form>
       </div>
 

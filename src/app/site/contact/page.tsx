@@ -286,7 +286,7 @@ export default function ContactPage() {
       {/* CTA */}
       <section className={`py-14 ${BG_ACCENT} text-center`}>
         <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-          Need Installation Right Away?
+          Need Services Right Away?
         </h2>
         <p className="text-[#c7e5b5] mb-6 px-4 max-w-2xl mx-auto">
           Skip the message and head straight to booking.

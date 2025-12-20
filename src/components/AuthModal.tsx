@@ -6,7 +6,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase-client";
 import { Mail, X, User } from "lucide-react";
 import { useToast } from "@/components/Toast";
-
+import { usePathname, useRouter } from "next/navigation"; // Add useRouter here
 const BRAND_COLOR = "#8ed26b";
 
 type Mode = "login" | "register" | "verify";
@@ -24,6 +24,7 @@ export default function AuthModal({
   initialMode = "login",
   onAuthSuccess,
 }: AuthModalProps) {
+  const router = useRouter();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -33,7 +34,7 @@ export default function AuthModal({
   const { toast } = useToast(); // <-- fixed
 
   // OTP related
-  const OTP_LEN = 6; // 8-digit code
+  const OTP_LEN = 6; // 6-digit code
   const [otp, setOtp] = useState<string[]>(Array(OTP_LEN).fill(""));
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -181,38 +182,48 @@ export default function AuthModal({
 
   // --- verify OTP ---
   const verifyOtp = async () => {
-    clearAlerts();
-    const code = fullOtpString();
-    if (code.length !== OTP_LEN) {
-      setError("Enter the 8-digit code");
-      return;
-    }
-    if (!sentTo) {
-      setError("No email to verify. Please request OTP again.");
-      return;
-    }
+  clearAlerts();
+  const code = fullOtpString();
+  if (code.length !== OTP_LEN) {
+    setError("Enter the 6-digit code");
+    return;
+  }
+  if (!sentTo) {
+    setError("No email to verify. Please request OTP again.");
+    return;
+  }
 
-    setIsVerifying(true);
-    try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        email: sentTo,
-        token: code,
-        type: "email",
-      });
+  setIsVerifying(true);
+  try {
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email: sentTo,
+      token: code,
+      type: "email",
+    });
 
-      if (verifyError) {
-        toast({ title: verifyError.message || "OTP verification failed", variant: "destructive" });
-      } else {
-        toast({ title: "Authenticated successfully", variant: "success" });
-        if (onAuthSuccess) onAuthSuccess();
-        setTimeout(closeModal, 700);
-      }
-    } catch (err: any) {
-      setError(err?.message || "Verification error");
-    } finally {
-      setIsVerifying(false);
+    if (verifyError) {
+      toast({ title: verifyError.message || "OTP verification failed", variant: "destructive" });
+    } else {
+      toast({ title: "Authenticated successfully", variant: "success" });
+      
+      // 1. Trigger the callback if provided
+      if (onAuthSuccess) onAuthSuccess();
+      
+      // 2. Redirect to the home page
+      router.push("/site"); 
+      
+      // 3. Close the modal after a slight delay
+      setTimeout(() => {
+        closeModal();
+        router.refresh(); // Refresh to update the navbar/user state globally
+      }, 500);
     }
-  };
+  } catch (err: any) {
+    setError(err?.message || "Verification error");
+  } finally {
+    setIsVerifying(false);
+  }
+};
 
   const formatTime = (seconds: number) => {
   const m = Math.floor(seconds / 60);
@@ -271,10 +282,10 @@ export default function AuthModal({
             </h2>
             <p className="text-sm text-gray-500 mb-2 text-center">
               {mode === "login"
-                ? "Enter your email to receive a 8-digit login code"
+                ? "Enter your email to receive a 6-digit login code"
                 : mode === "register"
-                  ? "Enter name & email to receive a 8-digit signup code"
-                  : `We've sent a 8-digit code to ${sentTo ?? email}.`}
+                  ? "Enter name & email to receive a 6-digit signup code"
+                  : `We've sent a 6-digit code to ${sentTo ?? email}.`}
             </p>
 
             <button
@@ -385,7 +396,7 @@ export default function AuthModal({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Enter 8-digit code
+                  Enter 6-digit code
                 </label>
 
                 <div

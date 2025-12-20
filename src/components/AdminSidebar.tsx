@@ -77,6 +77,11 @@ export default function AdminSidebar() {
       path: "/admin/reviews",
       icon: <MessageCircle size={20} />,
     },
+    {
+    name: "Careers",
+    path: "/admin/admincarrer",
+    icon: <Folder size={20} />, // you can replace with a more appropriate icon
+  },
   ];
 
   const renderMenu = (items: MenuItem[]) =>
@@ -132,7 +137,7 @@ export default function AdminSidebar() {
     <aside className="w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white p-6 flex flex-col shadow-2xl h-screen sticky top-0">
       <div className="mb-10 flex justify-center">
         <img
-          src="/insta.png"
+          src="/footerlogo.png"
           alt="Instafit Core"
           className="w-50 h-20 shadow-md"
         />

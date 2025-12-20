@@ -119,6 +119,13 @@ const WHY_CHOOSE_US_DATA: WhyChooseUsItem[] = [
     description:
       "100% satisfaction guarantee with transparent pricing and excellent customer support.",
   },
+  {
+  iconSrc: "/end.png",
+  alt: "End-to-End Service",
+  title: "End-to-End Service",
+  description:
+    "From booking to completion, we manage everything so you don’t have to worry.",
+},
 ];
 
 const FAQ_DATA: FAQItem[] = [
@@ -135,8 +142,8 @@ const FAQ_DATA: FAQItem[] = [
     answer: "Yes, all our technicians are fully certified, trained, and insured. They specialize in a wide range of furniture assembly and home repair tasks, ensuring high-quality results every time.",
   },
   {
-    question: "What is your cancellation policy?",
-    answer: "You can cancel or reschedule your service appointment up to 24 hours in advance without any fee. Cancellations made within 24 hours may incur a small charge.",
+    question: "Do you provide warranty or service guarantee?",
+    answer: "Yes, we ensure service quality and customer satisfaction. Any service-related concerns can be raised with our support team for quick resolution.",
   },
 ];
 
@@ -636,7 +643,7 @@ export default function HomePage() {
             Why Choose Our Services?
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10">
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
             {WHY_CHOOSE_US_DATA.map((item, index) => (
               <WhyChooseUsCard key={index} {...item} />
             ))}

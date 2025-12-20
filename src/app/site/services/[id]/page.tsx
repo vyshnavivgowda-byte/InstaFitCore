@@ -21,6 +21,7 @@ import {
   Wrench,
   X,
   Star,
+  LogIn,
 } from "lucide-react";
 
 // --- CUSTOM COLORS (from ServicesPage.tsx) ---
@@ -194,6 +195,8 @@ export default function ServiceDetailsPage() {
 
   const isAuthenticated = !!userId; // Updated to match
   const disabledClass = "opacity-50 cursor-not-allowed";
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+
 
   // ------------------- FETCH REVIEWS FOR SUBCATEGORY -------------------
   const fetchReviewsForSubcategory = useCallback(async (subcategoryName: string) => {
@@ -446,16 +449,14 @@ export default function ServiceDetailsPage() {
   // ------------------- BOOK NOW -------------------
   const handleBookClick = (service: ServiceItem) => {
     if (!isAuthenticated) {
-      toast ? toast({
-        title: "Login Required",
-        description: "Please log in to book a service.",
-        variant: "destructive",
-      }) : alert("Login required!");
+      // Open the custom login modal instead of showing toast/alert
+      setLoginPromptOpen(true);
       return;
     }
     setSelectedService(service);
     setModalOpen(true);
   };
+
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-xl">Loading Service Details...</div>;
   if (!service) return <div className="min-h-screen flex items-center justify-center text-xl text-red-500">Service Not Found</div>;
@@ -534,9 +535,18 @@ export default function ServiceDetailsPage() {
                   <div className="relative w-full h-48 bg-gray-100">
                     {item.image_url ? <Image src={item.image_url} alt={item.service_name} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover transition-transform duration-500 hover:scale-105" /> : <div className="flex items-center justify-center h-full text-gray-400"><Wrench className="w-10 h-10" /></div>}
 
-                    <button onClick={() => toggleWishlist(item.id)} disabled={!isAuthenticated} className={`absolute top-3 right-3 p-2 rounded-full shadow-md transition-colors ${isWishlisted ? "bg-red-500 text-white hover:bg-red-600" : "bg-white text-gray-500 hover:text-red-500"} ${!isAuthenticated ? disabledClass : ""}`} title="Add to Wishlist">
+                    <button
+                      onClick={() => toggleWishlist(item.id)}
+                      className={`absolute top-3 right-3 p-2 rounded-full shadow-md transition-colors
+    ${isWishlisted
+                          ? "bg-red-500 text-white hover:bg-red-600"
+                          : "bg-white text-gray-500 hover:text-red-500"
+                        }`}
+                      title="Add to Wishlist"
+                    >
                       <Heart className="w-5 h-5 fill-current" />
                     </button>
+
 
                     {averageRatings[item.id] && <button onClick={() => handleSeeReviews(item)} className="absolute bottom-2 right-2 px-3 py-1.5 bg-black/70 text-white backdrop-blur-md rounded-full text-xs font-medium flex items-center gap-1 hover:bg-black/90 transition-all z-10">⭐ {averageRatings[item.id].toFixed(1)} • See Reviews</button>}
                   </div>
@@ -557,29 +567,33 @@ export default function ServiceDetailsPage() {
                       {/* MODIFIED: Cart Button with Color Change and Navigation */}
                       <button
                         onClick={() => handleCartClick(item, isInCart)}
-                        disabled={!isAuthenticated}
                         className={`p-3 rounded-xl border transition-colors flex items-center justify-center 
-                        ${isInCart
-                            ? `border-red-500 text-white bg-red-500 hover:bg-red-600`
-                            : isAuthenticated
-                              ? `border-[${PRIMARY_COLOR}] text-[${PRIMARY_COLOR}] hover:bg-[${PRIMARY_COLOR}]/10`
-                              : "bg-gray-200 text-gray-500 " + disabledClass
+    ${isInCart
+                            ? "border-red-500 text-white bg-red-500 hover:bg-red-600"
+                            : "border-[#8ED26B] text-[#8ED26B] hover:bg-[#8ED26B]/10"
                           }`}
-                        title={isInCart ? "Service added to Cart (Click to modify)" : "Add service to Cart"}
+                        title={isInCart ? "Go to Cart" : "Add service to Cart"}
                       >
                         <ShoppingCart className="w-5 h-5" />
                       </button>
 
-                     <button
-  disabled={!isAuthenticated}
-  className={`flex-grow p-3 rounded-xl text-white font-semibold flex items-center justify-center shadow-lg
-    ${isAuthenticated ? 'bg-[#8ED26B] hover:bg-[#72b852]' : 'bg-gray-400 opacity-50 cursor-not-allowed'}`}
->
-  Book Now
-</button>
+                      <button
+                        onClick={() => {
+                          if (!isAuthenticated) {
+                            setLoginPromptOpen(true); // show the login modal
+                            return;
+                          }
+                          setSelectedService(item);
+                          setModalOpen(true);
+                        }}
+                        className={`flex-grow p-3 rounded-xl text-white font-semibold flex items-center justify-center shadow-lg
+    bg-[#8ED26B] hover:bg-[#72b852] transition-colors`}
+                      >
+                        Book Now
+                      </button>
+
 
                     </div>
-                    {!isAuthenticated && <p className="text-xs text-red-500 mt-2 text-center">Sign in to add to wishlist or cart</p>}
                   </div>
                 </div>
               );
@@ -710,6 +724,42 @@ export default function ServiceDetailsPage() {
           </div>
         </div>
       )}
+      {loginPromptOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 w-11/12 max-w-md shadow-2xl animate-fadeIn">
+            {/* Icon */}
+            <div className="flex justify-center mb-4">
+              <LogIn className="w-16 h-16 text-[#8ED26B]" />
+            </div>
+
+
+
+            {/* Heading */}
+            <h3 className="text-2xl font-extrabold text-center text-gray-800 mb-2">
+              Login Required
+            </h3>
+
+            {/* Updated Description */}
+            <p className="text-center text-gray-600 mb-6">
+              To book this service, please log in or sign up to your InstaFitCore account.
+            </p>
+
+            {/* Buttons */}
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setLoginPromptOpen(false)}
+                className="px-6 py-2 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
     </div>
+
+
   );
 }

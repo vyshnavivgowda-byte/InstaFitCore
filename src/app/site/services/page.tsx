@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 import { useToast } from "@/components/Toast";
 import BookServiceModal from "@/components/BookServiceModal";
+import { LogIn } from "lucide-react"; // add this import at the top
+
 import {
   Wrench,
   Package,
@@ -134,16 +136,35 @@ function ServicesPageContent() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [cartItems, setCartItems] = useState<CartRow[]>([]);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const [subcategoriesMap, setSubcategoriesMap] = useState<Record<number, Subcategory[]>>({});
+
+  const [expandedCategoryId, setExpandedCategoryId] = useState<number | null>(null);
 
   // Ratings state
   const [averageRatings, setAverageRatings] = useState<Record<number, number>>({});
 
   // Mobile filters
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  // Login prompt modal state
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+
 
   const cartCount = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
   const isAuthenticated = !!userId;
   const disabledClass = "opacity-50 cursor-not-allowed";
+
+  const topLevelMenu = [
+    "Furniture Service",
+    "Customized Modular Furniture",
+    "Customized Modular Kitchen",
+    "Packer and Movers",
+    "B2B Service Requirement Request",
+  ];
+
+  const [selectedTopLevel, setSelectedTopLevel] =
+    useState<string | null>(null);
 
   // Auto-filter by typeId
   useEffect(() => {
@@ -157,79 +178,97 @@ function ServicesPageContent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
 
-    // Get session
-    const { data: sessionData } = await supabase.auth.getSession();
-    const currentUserId = sessionData?.session?.user?.id || null;
-    const currentUserEmail = sessionData?.session?.user?.email || null;
-    setUserId(currentUserId);
-    setUserEmail(currentUserEmail);
+    try {
+      // --- Auth ---
+      const { data: sessionData } = await supabase.auth.getSession();
+      const currentUserId = sessionData?.session?.user?.id || null;
+      const currentUserEmail = sessionData?.session?.user?.email || null;
+      setUserId(currentUserId);
+      setUserEmail(currentUserEmail);
+      setAuthLoading(false);
 
-    // Fetch wishlist & cart
-    if (currentUserId) {
-      const { data: wishlistData } = await supabase
-        .from("wishlist_items")
-        .select("service_id")
-        .eq("user_id", currentUserId);
-      setWishlist(wishlistData?.map((r: WishlistRow) => r.service_id) || []);
+      // --- Wishlist & Cart ---
+      if (currentUserId) {
+        const { data: wishlistData } = await supabase
+          .from("wishlist_items")
+          .select("service_id")
+          .eq("user_id", currentUserId);
+        setWishlist(wishlistData?.map((r: WishlistRow) => r.service_id) || []);
 
-      const { data: cartData } = await supabase
-        .from("cart_items")
-        .select("service_id, quantity, selected_services")
-        .eq("user_id", currentUserId);
-      setCartItems(cartData as CartRow[] || []);
-    }
-
-    // Fetch subcategories
-    const { data: subData } = await supabase
-      .from("subcategories")
-      .select("*")
-      .eq("is_active", true)
-      .order("subcategory", { ascending: true });
-    setSubcategories(subData || []);
-
-    // Fetch services
-    const { data: serviceData } = await supabase
-      .from("services")
-      .select("*")
-      .order("service_name", { ascending: true });
-    setServices(serviceData || []);
-
-    // Fetch approved reviews and calculate average ratings
-    // ... existing code ...
-
-    // Fetch approved reviews and calculate average ratings
-    // Fetch approved reviews and calculate average ratings
-    const { data: reviewsData, error: reviewsError } = await supabase
-      .from("service_reviews")
-      .select("rating, service_id")
-      .eq("status", "approved");
-
-    if (reviewsError) {
-      console.error("Error fetching reviews:", reviewsError);
-    } else if (reviewsData) {
-      const ratingsMap: Record<number, { sum: number; count: number }> = {};
-
-      reviewsData.forEach((review: any) => {
-        const serviceId = review.service_id;
-        if (!serviceId) return;
-
-        if (!ratingsMap[serviceId]) ratingsMap[serviceId] = { sum: 0, count: 0 };
-        ratingsMap[serviceId].sum += review.rating;
-        ratingsMap[serviceId].count++;
-      });
-
-      const avgRatings: Record<number, number> = {};
-      for (const sid in ratingsMap) {
-        avgRatings[+sid] =
-          ratingsMap[sid].sum / ratingsMap[sid].count;
+        const { data: cartData } = await supabase
+          .from("cart_items")
+          .select("service_id, quantity, selected_services")
+          .eq("user_id", currentUserId);
+        setCartItems(cartData as CartRow[] || []);
       }
 
-      setAverageRatings(avgRatings);
+      // --- Fetch Categories ---
+      // Fetch Categories
+      const { data: categoriesData } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("is_active", true)
+        .order("category", { ascending: true });
+
+      // Map to the expected shape
+      setCategories(
+        categoriesData?.map(cat => ({ id: cat.id, name: cat.category })) || []
+      );
+
+      // --- Fetch Subcategories per Category ---
+      // --- Fetch Subcategories per Category (TEXT BASED) ---
+      const subMap: Record<number, Subcategory[]> = {};
+
+      if (categoriesData) {
+        for (const cat of categoriesData) {
+          const { data: subData } = await supabase
+            .from("subcategories")
+            .select("*")
+            .eq("category", cat.category) // ✅ MATCH TEXT
+            .eq("is_active", true)
+            .order("subcategory", { ascending: true });
+
+          subMap[cat.id] = subData || [];
+        }
+      }
+
+      setSubcategoriesMap(subMap);
+
+
+      // --- Fetch Services ---
+      const { data: serviceData } = await supabase
+        .from("services")
+        .select("*")
+        .order("service_name", { ascending: true });
+      setServices(serviceData || []);
+
+      // --- Fetch Reviews & calculate average ratings ---
+      const { data: reviewsData } = await supabase
+        .from("service_reviews")
+        .select("rating, service_id")
+        .eq("status", "approved");
+
+      if (reviewsData) {
+        const ratingsMap: Record<number, { sum: number; count: number }> = {};
+        reviewsData.forEach((review: any) => {
+          const sid = review.service_id;
+          if (!ratingsMap[sid]) ratingsMap[sid] = { sum: 0, count: 0 };
+          ratingsMap[sid].sum += review.rating;
+          ratingsMap[sid].count++;
+        });
+        const avgRatings: Record<number, number> = {};
+        for (const sid in ratingsMap) {
+          avgRatings[+sid] = ratingsMap[sid].sum / ratingsMap[sid].count;
+        }
+        setAverageRatings(avgRatings);
+      }
+    } catch (err) {
+      console.error("Error fetching services page data:", err);
+    } finally {
+      setLoading(false);
     }
-
-
-    setLoading(false);
   }, []);
+
 
   useEffect(() => {
     fetchData();
@@ -261,7 +300,7 @@ function ServicesPageContent() {
   // --- Wishlist ---
   const toggleWishlist = useCallback(async (service_id: number) => {
     if (!isAuthenticated || !userId) {
-      toast({ title: "Login Required", description: "Please log in.", variant: "destructive" });
+      toast({ title: "Login Required", description: "Please log in to add item .", variant: "destructive" });
       return;
     }
 
@@ -316,7 +355,7 @@ function ServicesPageContent() {
 
   const handleCartClick = (service: ServiceItem, isInCart: boolean) => {
     if (!isAuthenticated) {
-      toast({ title: "Login Required", description: "Please log in.", variant: "destructive" });
+      toast({ title: "Login Required", description: "Please log in to add item", variant: "destructive" });
       return;
     }
     if (isInCart) {
@@ -340,10 +379,18 @@ function ServicesPageContent() {
   }, [services, selectedSubcategory, activePriceFilter, searchText]);
 
   const handleBookClick = (service: ServiceItem) => {
-    if (!isAuthenticated) { alert("Please log in."); return; }
+    if (authLoading) return; // still loading, do nothing
+
+    if (!isAuthenticated) {
+      setLoginPromptOpen(true);
+      return;
+    }
+
     setSelectedService(service);
     setModalOpen(true);
   };
+
+
 
   // --- Render ---
   return (
@@ -367,33 +414,143 @@ function ServicesPageContent() {
           <h2 className="text-xl font-bold mb-5 flex items-center gap-2 text-gray-800">
             <Filter className="w-5 h-5 text-gray-600" /> Categories
           </h2>
-          <ul className="space-y-1">
-            <li>
-              <button
-                onClick={() => setSelectedSubcategory(null)}
-                className={`w-full text-left px-4 py-2 rounded-xl font-medium border-2 ${selectedSubcategory === null
-                  ? "bg-primary-green text-white border-primary-green"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-transparent"
-                  }`}
-              >
-                All Services
-              </button>
-            </li>
-            {subcategories.map((subcat) => (
-              <li key={subcat.id}>
-                <button
-                  onClick={() => setSelectedSubcategory(subcat.subcategory)}
-                  className={`w-full text-left px-4 py-2 rounded-xl ${selectedSubcategory === subcat.subcategory
-                    ? "bg-primary-green text-white font-semibold shadow-md"
-                    : "hover:bg-gray-100 text-gray-700"
-                    }`}
-                >
-                  {subcat.subcategory}
-                </button>
-              </li>
-            ))}
+
+          <ul className="space-y-2">
+            {topLevelMenu.map(item => {
+              const isFurniture = item === "Furniture Service";
+              const isActive = selectedTopLevel === item;
+
+              return (
+                <li key={item}>
+                  {/* TOP LEVEL ITEM */}
+                  <button
+                    onClick={() => {
+                      // Furniture Service → expand categories (current behavior)
+                      if (item === "Furniture Service") {
+                        setSelectedTopLevel(isActive ? null : item);
+                        setExpandedCategoryId(null);
+                        setSelectedSubcategory(null);
+                        return;
+                      }
+
+                      // Other items → redirect to pages
+                      if (item === "Customized Modular Furniture") {
+                        router.push("/site/request/customized-modular-furniture");
+                        return;
+                      }
+
+                      if (item === "Customized Modular Kitchen") {
+                        router.push("/site/request/customized-modular-kitchen");
+                        return;
+                      }
+
+                      if (item === "Packer and Movers") {
+                        router.push("/site/request/packer-and-movers");
+                        return;
+                      }
+
+                      if (item === "B2B Service Requirement Request") {
+                        router.push("/site/request/b2b-service-requirement");
+                        return;
+                      }
+                    }}
+
+                    className={`w-full text-left px-4 py-2 rounded-xl font-semibold flex justify-between items-center transition-all
+    ${isActive
+                        ? "bg-primary-green text-white shadow-md"
+                        : "text-gray-700 hover:bg-primary-green/10"
+                      }
+  `}
+                  >
+                    {item}
+                    {isFurniture && (
+                      <span
+                        className={`transition-transform ${isActive ? "rotate-90" : ""
+                          }`}
+                      >
+                        &gt;
+                      </span>
+                    )}
+                  </button>
+
+
+
+                  {/* 👉 NESTED CATEGORIES UNDER FURNITURE SERVICE */}
+                  {isFurniture && isActive && (
+                    <div className="mt-2 ml-2 space-y-1">
+                      {/* All Furniture Services */}
+                      <button
+                        onClick={() => setSelectedSubcategory(null)}
+                        className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-all
+                ${selectedSubcategory === null
+                            ? "bg-primary-green/20 text-primary-green font-semibold"
+                            : "hover:bg-gray-100 text-gray-700"
+                          }
+              `}
+                      >
+                        All Furniture Services
+                      </button>
+
+                      {/* CATEGORIES */}
+                      {categories.map(cat => {
+                        const isExpanded = expandedCategoryId === cat.id;
+
+                        return (
+                          <div key={cat.id}>
+                            <button
+                              onClick={() =>
+                                setExpandedCategoryId(isExpanded ? null : cat.id)
+                              }
+                              className={`w-full text-left px-3 py-2 rounded-lg text-sm font-semibold flex justify-between items-center transition-all
+    ${isExpanded
+                                  ? "bg-primary-green/20 text-primary-green"
+                                  : "text-gray-800 hover:bg-gray-100"
+                                }
+  `}
+                            >
+                              {cat.name}
+
+                              {subcategoriesMap[cat.id]?.length > 0 && (
+                                <span
+                                  className={`transition-transform duration-200 ${isExpanded ? "rotate-90" : ""
+                                    }`}
+                                >
+                                  &gt;
+                                </span>
+                              )}
+                            </button>
+
+                            {/* SUBCATEGORIES */}
+                            {isExpanded &&
+                              subcategoriesMap[cat.id]?.map(sub => (
+                                <button
+                                  key={sub.id}
+                                  onClick={() => setSelectedSubcategory(sub.subcategory)}
+                                  className={`w-full text-left ml-4 px-4 py-2 mt-1 rounded-lg text-sm transition-all
+                          ${selectedSubcategory === sub.subcategory
+                                      ? "bg-primary-green text-white shadow-md"
+                                      : "text-gray-700 hover:bg-primary-green/10"
+                                    }
+                        `}
+                                >
+                                  {sub.subcategory}
+                                </button>
+                              ))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
+
+
         </aside>
+
+
+
 
         {/* MAIN CONTENT */}
         <main className="flex-1">
@@ -446,7 +603,7 @@ function ServicesPageContent() {
                     className="bg-white rounded-2xl shadow-lg p-5 flex flex-col relative"
                   >
                     {/* Wishlist Heart */}
-                    <button                       onClick={() => toggleWishlist(service.id)}
+                    <button onClick={() => toggleWishlist(service.id)}
                       className={`absolute top-3 right-3 z-20 p-2 rounded-full shadow-md transition-colors 
                                                 ${isWishlisted ? "bg-red-500 text-white" : "bg-white text-gray-500 hover:text-red-500"} 
                                                 ${!isAuthenticated ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -534,30 +691,29 @@ function ServicesPageContent() {
                       {/* Add to cart - NOW OPENS MODAL */}
                       <button
                         onClick={() => handleCartClick(service, isInCart)}
-                        disabled={!isAuthenticated}
                         className={`p-3 rounded-xl border transition-colors flex items-center justify-center 
-        ${isInCart // This condition makes the button solid red
+    ${isInCart
                             ? `border-red-500 text-white bg-red-500 hover:bg-red-600`
-                            : isAuthenticated
-                              ? `border-[${PRIMARY_COLOR}] text-[${PRIMARY_COLOR}] hover:bg-[${PRIMARY_COLOR}]/10`
-                              : "bg-gray-200 text-gray-500 " + disabledClass
+                            : `border-[${PRIMARY_COLOR}] text-[${PRIMARY_COLOR}] hover:bg-[${PRIMARY_COLOR}]/10`
                           }`}
                         title={isInCart ? "Service added to Cart (Click to modify)" : "Add service to Cart"}
                       >
                         <ShoppingCart className="w-5 h-5" />
                       </button>
 
+
+                      {/* Book Now */}
                       {/* Book Now */}
                       <button
                         onClick={() => handleBookClick(service)}
                         className={`flex-grow p-3 rounded-xl text-white font-semibold flex items-center justify-center shadow-md ${isAuthenticated
                           ? "bg-primary-green hover:bg-hover-green"
-                          : "bg-gray-400 opacity-50 cursor-not-allowed"
+                          : "bg-primary-green hover:bg-primary-green" // Slightly faded, but clickable
                           }`}
-                        disabled={!isAuthenticated}
                       >
                         Book Now
                       </button>
+
                     </div>
                   </div>
                 );
@@ -782,16 +938,51 @@ function ServicesPageContent() {
       )}
 
       {/* BOOKING MODAL (existing) */}
-         {selectedService && (
-     <BookServiceModal
-       service={selectedService}
-       isOpen={modalOpen}
-       onClose={() => setModalOpen(false)}
-       userEmail={userEmail || ''}
-       isLoading={isBookingLoading}  // Add this line
-     />
-   )}
-   
+      {selectedService && (
+        <BookServiceModal
+          service={selectedService}
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          userEmail={userEmail || ''}
+          isLoading={isBookingLoading}  // Add this line
+        />
+      )}
+
+      {/* LOGIN PROMPT MODAL */}
+      {loginPromptOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 w-11/12 max-w-md shadow-2xl animate-fadeIn">
+            {/* Icon */}
+            <div className="flex justify-center mb-4">
+              <LogIn className="w-16 h-16 text-primary-green" />
+            </div>
+
+            {/* Heading */}
+            <h3 className="text-2xl font-extrabold text-center text-gray-800 mb-2">
+              Login Required
+            </h3>
+
+            {/* Updated Description */}
+            <p className="text-center text-gray-600 mb-6">
+              To book this service, please log in or sign up to your InstaFitCore account.
+            </p>
+
+            {/* Buttons */}
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setLoginPromptOpen(false)}
+                className="px-6 py-2 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
+
     </div>
   );
 }
