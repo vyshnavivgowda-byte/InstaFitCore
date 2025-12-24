@@ -531,14 +531,14 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
           {/* Contact Details */}
           <div className="space-y-4 mb-4">
             <InputField
-              label="Customer Full Name"
+              label={<>Customer Full Name <span className="text-red-500">*</span></>}
               value={address.fullName}
               onChange={(e) => handleAddressChange("fullName", e.target.value)}
               error={addressErrors.fullName}
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <InputField
-                label="Mobile Number"
+                label={<>Mobile Number <span className="text-red-500">*</span></>}
                 type="tel"
                 value={address.mobile}
                 onChange={(e) => handleAddressChange("mobile", e.target.value)}
@@ -561,7 +561,7 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <InputField
-                label="Flat / House / Plot No"
+                label={<>Flat / House / Plot No <span className="text-red-500">*</span></>}
                 value={address.flatHousePlot}
                 onChange={(e) => handleAddressChange("flatHousePlot", e.target.value)}
                 error={addressErrors.flatHousePlot}
@@ -574,19 +574,20 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
               />
             </div>
             <InputField
-              label="Building / Apartment Name"
+              label={<>Building / Apartment Name <span className="text-red-500">*</span></>}
               value={address.buildingApartment}
               onChange={(e) => handleAddressChange("buildingApartment", e.target.value)}
               error={addressErrors.buildingApartment}
             />
+
             <InputField
-              label="Street / Locality"
+              label={<>Street / Locality <span className="text-red-500">*</span></>}
               value={address.streetLocality}
               onChange={(e) => handleAddressChange("streetLocality", e.target.value)}
               error={addressErrors.streetLocality}
             />
             <InputField
-              label="Area / Zone"
+              label={<>Area / Zone <span className="text-red-500">*</span></>}
               value={address.areaZone}
               onChange={(e) => handleAddressChange("areaZone", e.target.value)}
               error={addressErrors.areaZone}
@@ -598,26 +599,23 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
             />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <InputField
-                label="City / Town"
+                label={<>City / Town <span className="text-red-500">*</span></>}
                 value={address.cityTown}
                 onChange={(e) => handleAddressChange("cityTown", e.target.value)}
                 error={addressErrors.cityTown}
-                className="col-span-1 sm:col-span-1"
               />
               <InputField
-                label="State"
+                label={<>State <span className="text-red-500">*</span></>}
                 value={address.state}
                 onChange={(e) => handleAddressChange("state", e.target.value)}
                 error={addressErrors.state}
-                className="col-span-1 sm:col-span-1"
               />
               <InputField
-                label="Pincode"
+                label={<>Pincode <span className="text-red-500">*</span></>}
                 value={address.pincode}
                 onChange={(e) => handleAddressChange("pincode", e.target.value)}
                 error={addressErrors.pincode}
                 maxLength={6}
-                className="col-span-1 sm:col-span-1"
               />
             </div>
           </div>

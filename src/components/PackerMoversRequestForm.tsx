@@ -150,47 +150,151 @@ export default function PackersMoversPage() {
               </div>
             </div>
 
-          {/* Move Details */}
-<div className="space-y-4">
-  <h3 className="text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">
-    Move Details
-  </h3>
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-    {[
-      ["move_from_address", "Move From (Pickup Location)", 2],
-      ["move_to_address", "Move To (Drop Location)", 2],
-      ["property_details", "Property Details", 1],
-      ["moving_type_description", "Moving Type Description", 1],
-      ["preferred_moving_date", "Preferred Moving Date / Time", 1],
-      ["items_details", "Items / Household Details", 2],
-      ["services_required", "Services Required", 1],
-      ["special_handling_instructions", "Special Handling Instructions", 1],
-      ["expected_completion_timeline", "Expected Completion Timeline", 1],
-      ["additional_notes", "Additional Notes", 4],
-    ].map(([name, label, span]) => (
-      <div key={name} className={`col-span-${span}`}>
-        <label className="block text-gray-700 font-medium text-sm mb-1">{label}</label>
-        {name.includes("date") ? (
-          <input
-            type="date"
-            name={name}
-            value={form[name]}
-            onChange={handleChange}
-            className={input}
-          />
-        ) : (
-          <textarea
-            name={name}
-            value={form[name]}
-            onChange={handleChange}
-            className={`${input} h-24 resize-none`}
-            placeholder={`Enter ${label}`}
-          />
-        )}
-      </div>
-    ))}
-  </div>
-</div>
+            {/* Move Details */}
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">
+                Move Details
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                {/* ROW 1 */}
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Move From (Pickup Location)
+                  </label>
+                  <textarea
+                    name="move_from_address"
+                    value={form.move_from_address}
+                    onChange={handleChange}
+                    className={`${input} h-24 resize-none`}
+                    placeholder="Enter pickup location"
+                  />
+                </div>
+
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Move To (Drop Location)
+                  </label>
+                  <textarea
+                    name="move_to_address"
+                    value={form.move_to_address}
+                    onChange={handleChange}
+                    className={`${input} h-24 resize-none`}
+                    placeholder="Enter drop location"
+                  />
+                </div>
+
+                {/* ROW 2 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Property Details
+                  </label>
+                  <textarea
+                    name="property_details"
+                    value={form.property_details}
+                    onChange={handleChange}
+                    className={`${input} h-24 resize-none`}
+                    placeholder="Example: 1BHK apartment, 2BHK villa, floor number, lift availability, etc"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Moving Type Description
+                  </label>
+                  <textarea
+                    name="moving_type_description"
+                    value={form.moving_type_description}
+                    onChange={handleChange}
+                    className={`${input} h-24 resize-none`}
+                    placeholder="Local / intercity / within same building – describe in words"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Preferred Moving Date
+                  </label>
+                  <input
+                    type="date"
+                    name="preferred_moving_date"
+                    value={form.preferred_moving_date}
+                    onChange={handleChange}
+                    className={`${input} h-12`}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Expected Completion Timeline
+                  </label>
+                  <textarea
+                    name="expected_completion_timeline"
+                    value={form.expected_completion_timeline}
+                    onChange={handleChange}
+                    className={`${input} h-24 resize-none`}
+                    placeholder="Same day, 2–3 days, flexible"
+                  />
+                </div>
+
+                {/* ROW 3 */}
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Items / Household Details
+                  </label>
+                  <textarea
+                    name="items_details"
+                    value={form.items_details}
+                    onChange={handleChange}
+                    className={`${input} h-24 resize-none`}
+                    placeholder="Furniture, appliances, fragile items"
+                  />
+                </div>
+
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Services Required
+                  </label>
+                  <textarea
+                    name="services_required"
+                    value={form.services_required}
+                    onChange={handleChange}
+                    className={`${input} h-24 resize-none`}
+                    placeholder="Packing, loading, transportation, unloading, unpacking, dismantling & installation – describe required services"
+                  />
+                </div>
+
+                {/* ROW 4 */}
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Special Handling Instructions
+                  </label>
+                  <textarea
+                    name="special_handling_instructions"
+                    value={form.special_handling_instructions}
+                    onChange={handleChange}
+                    className={`${input} h-24 resize-none`}
+                    placeholder="Fragile items, heavy items, piano, glass, antique, etc.)"
+                  />
+                </div>
+
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Additional Notes
+                  </label>
+                  <textarea
+                    name="additional_notes"
+                    value={form.additional_notes}
+                    onChange={handleChange}
+                    className={`${input} h-24 resize-none`}
+                    placeholder="Any other information"
+                  />
+                </div>
+
+              </div>
+            </div>
+
 
 
             <button

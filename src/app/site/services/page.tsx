@@ -190,6 +190,8 @@ function ServicesPageContent() {
     useState<string | null>(null);
 
   // Auto-filter by typeId
+  // Auto-filter by typeId
+  // Auto-filter by typeId
   useEffect(() => {
     if (!typeId) return;
     if (typeId === "1") setActivePriceFilter("install");
@@ -197,6 +199,13 @@ function ServicesPageContent() {
     if (typeId === "3") setActivePriceFilter("repair");
   }, [typeId]);
 
+  // Add this new useEffect to handle the topLevel query param
+  useEffect(() => {
+    const topLevelParam = searchParams.get("topLevel");
+    if (topLevelParam && topLevelMenu.includes(topLevelParam)) {
+      setSelectedTopLevel(topLevelParam);
+    }
+  }, [searchParams]);
   // --- FETCH DATA ---
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -611,13 +620,13 @@ function ServicesPageContent() {
 
           ) : selectedTopLevel === "Relocation Services" ? (
             <div className="bg-white rounded-2xl shadow-xl p-6">
- 
+
               <PackerMoversRequestForm />
             </div>
 
           ) : selectedTopLevel === "B2B Services" ? (
             <div className="bg-white rounded-2xl shadow-xl p-6">
-       
+
               <B2BServicesRequestForm />
             </div>
 

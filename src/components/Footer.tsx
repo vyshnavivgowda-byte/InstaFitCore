@@ -50,10 +50,10 @@ export default function Footer() {
               <li className="ml-4"><a href="/site/services?typeId=1" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Installation</a></li>
               <li className="ml-4"><a href="/site/services?typeId=2" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Dismantling</a></li>
               <li className="ml-4 mb-2"><a href="/site/services?typeId=3" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Repair</a></li>
-              <li><a href="/site/services?category=modular-furniture" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Modular Furniture</a></li>
-              <li><a href="/site/request/customized-modular-kitchen" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Modular Kitchen</a></li>
-              <li><a href="/site/request/packer-and-movers" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Packers and Movers</a></li>
-              <li><a href="/site/book?type=b2b" className="hover:text-instafitcore-green transition-colors hover:pl-2 block font-medium">» B2B Services</a></li>
+              <li><a href="/site/services?topLevel=Customized%20Modular%20Furniture" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Modular Furniture</a></li>
+              <li><a href="/site/services?topLevel=Customized%20Modular%20Kitchen" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Modular Kitchen</a></li>
+              <li><a href="/site/services?topLevel=Relocation%20Services" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Packers and Movers</a></li>
+              <li><a href="/site/services?topLevel=B2B%20Services" className="hover:text-instafitcore-green transition-colors hover:pl-2 block font-medium">» B2B Services</a></li>
             </ul>
           </div>
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useToast } from "@/components/Toast";
 import { FaTruck, FaWrench, FaArrowLeft, FaCouch } from "react-icons/fa";
+
 type AddressField = [string, string, boolean];
 
 export default function B2BServiceRequirementPage() {
@@ -77,36 +78,36 @@ export default function B2BServiceRequirementPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f0f9f0] to-[#e8f5e8] py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#f0f9f0] to-[#e8f5e8] py-8 md:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-8 md:mb-16">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
             B2B Services <span className="text-[#8ed26b]">Requirement</span> Request
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-2">
             Tailored solutions for Brands, Retailers, Corporates & Enterprises.
             Let us handle your logistics and service needs with precision and care.
           </p>
         </div>
 
         {/* Services Showcase */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-semibold text-center text-gray-800 mb-4">Our Services</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="mb-8 md:mb-12">
+          <h2 className="text-xl md:text-2xl font-semibold text-center text-gray-800 mb-4">Our Services</h2>
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
             {[
-              { name: "Delivery", icon: <FaTruck />, desc: "Fast and reliable delivery" },
-              { name: "Installation", icon: <FaWrench />, desc: "Professional assembly" },
-              { name: "Reverse Pickup", icon: <FaArrowLeft />, desc: "Efficient return & pickup" },
-              { name: "Store Display Setup", icon: <FaCouch />, desc: "Expert furniture arrangement" },
-            ].map(service => (
-              <div key={service.name} className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 text-center border border-gray-100 hover:border-[#8ed26b] group">
-                <div className="flex justify-center items-center h-20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <div className="text-6xl text-[#7bc55a]">{service.icon}</div>
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">{service.name}</h3>
-                <p className="text-gray-600">{service.desc}</p>
+              { name: "Delivery", icon: <FaTruck /> },
+              { name: "Installation", icon: <FaWrench /> },
+              { name: "Reverse Pickup", icon: <FaArrowLeft /> },
+              { name: "Store Display Furniture Setup", icon: <FaCouch /> },
+            ].map((item) => (
+              <div
+                key={item.name}
+                className="flex items-center gap-2 bg-[#8ed26b] text-black rounded-lg px-3 md:px-4 py-2 text-sm font-medium min-h-[40px]"
+              >
+                <span className="text-base md:text-lg">{item.icon}</span>
+                <span>{item.name}</span>
               </div>
             ))}
           </div>
@@ -114,16 +115,16 @@ export default function B2BServiceRequirementPage() {
 
         {/* Form Section */}
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          <div className="bg-[#8ed26b] py-6 px-8">
-            <h2 className="text-2xl font-bold text-white text-center">
+          <div className="bg-[#8ed26b] py-4 md:py-6 px-6 md:px-8">
+            <h2 className="text-xl md:text-2xl font-bold text-white text-center">
               Submit Your Requirements
             </h2>
           </div>
-          <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-12">
+          <form onSubmit={handleSubmit} className="p-6 md:p-8 lg:p-12 space-y-8 md:space-y-12">
 
             {/* Company Details */}
             <Section title="Company Details">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 <Field label="Company / Brand Name" required>
                   <input name="company_name" required value={form.company_name} onChange={handleChange} className={input} placeholder="e.g., ABC Furniture Co." />
                 </Field>
@@ -139,41 +140,39 @@ export default function B2BServiceRequirementPage() {
               </div>
             </Section>
 
-{/* Address Details */}
-<Section title="Address Details">
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    {([
-      ["flat_no", "Flat / House / Plot No", true],
-      ["floor", "Floor", true],
-      ["building_name", "Building / Apartment Name", true],
-      ["street", "Street / Locality", true],
-      ["area", "Area / Zone", true],
-      ["landmark", "Landmark (Optional)", false],
-      ["city", "City / Town", true],
-      ["state", "State", true],
-      ["pincode", "Pincode", true],
-    ] as AddressField[]).map(([name, label, required]) => (
-      <Field key={name} label={label} required={required}>
-        <input
-          name={name}
-          required={required}
-          value={form[name]}
-          onChange={handleChange}
-          className={input}
-          placeholder={`Enter ${label.toLowerCase()}`}
-        />
-      </Field>
-    ))}
-  </div>
-</Section>
-
+            {/* Address Details */}
+            <Section title="Address Details">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                {([
+                  ["flat_no", "Flat / House / Plot No", true],
+                  ["floor", "Floor", true],
+                  ["building_name", "Building Name", true],
+                  ["street", "Street / Locality", true],
+                  ["area", "Area / Zone", true],
+                  ["landmark", "Landmark (Optional)", false],
+                  ["city", "City / Town", true],
+                  ["state", "State", true],
+                  ["pincode", "Pincode", true],
+                ] as AddressField[]).map(([name, label, required]) => (
+                  <Field key={name} label={label} required={required}>
+                    <input
+                      name={name}
+                      required={required}
+                      value={form[name]}
+                      onChange={handleChange}
+                      className={input}
+                      placeholder={`Enter ${label.toLowerCase()}`}
+                    />
+                  </Field>
+                ))}
+              </div>
+            </Section>
 
            {/* Service Details */}
-{/* Service Details */}
 <Section title="Service Details">
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
 
-    {/* First Row */}
+    {/* FIRST ROW */}
     <Field label="Service Location / Coverage Area" required>
       <input
         name="service_coverage_area"
@@ -181,6 +180,7 @@ export default function B2BServiceRequirementPage() {
         value={form.service_coverage_area}
         onChange={handleChange}
         className={input}
+        placeholder="City, multiple locations, PAN-India, etc."
       />
     </Field>
 
@@ -190,6 +190,7 @@ export default function B2BServiceRequirementPage() {
         value={form.business_type}
         onChange={handleChange}
         className={input}
+        placeholder="Retail brand, furniture brand, builder, corporate office, warehouse, etc."
       />
     </Field>
 
@@ -204,11 +205,11 @@ export default function B2BServiceRequirementPage() {
       />
     </Field>
 
+    {/* spacer to complete row on lg */}
     <div className="hidden lg:block" />
 
-    {/* SECOND ROW — ALL TEXTAREAS IN ONE ROW */}
-    <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-6">
-
+    {/* SECOND ROW — TEXTAREAS */}
+    <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
       <Field label="Service Requirement Description" required>
         <textarea
           name="service_requirement_description"
@@ -216,7 +217,7 @@ export default function B2BServiceRequirementPage() {
           value={form.service_requirement_description}
           onChange={handleChange}
           className={`${input} h-28 resize-none`}
-          placeholder="Describe requirements in detail..."
+          placeholder="Delivery, delivery-cum-installation, installation only, reverse pickup, repair, store setup, relocation, etc. – describe in detail"
         />
       </Field>
 
@@ -226,7 +227,7 @@ export default function B2BServiceRequirementPage() {
           value={form.volume_scale_of_work}
           onChange={handleChange}
           className={`${input} h-28 resize-none`}
-          placeholder="e.g., 100 orders/month"
+          placeholder="Number of orders, stores, locations, or approximate monthly volume."
         />
       </Field>
 
@@ -236,23 +237,21 @@ export default function B2BServiceRequirementPage() {
           value={form.furniture_product_details}
           onChange={handleChange}
           className={`${input} h-28 resize-none`}
-          placeholder="e.g., Beds, Sofas, Wardrobes"
+          placeholder="Type of products involved – beds, wardrobes, sofas, modular units, etc."
         />
       </Field>
-
     </div>
 
   </div>
 </Section>
 
 
-
             {/* Additional Notes */}
             <Section title="Additional Notes">
-              <textarea name="additional_notes" value={form.additional_notes} onChange={handleChange} className={`${input} h-24 resize-none`} placeholder="Any special instructions or notes..." />
+              <textarea name="additional_notes" value={form.additional_notes} onChange={handleChange} className={`${input} h-20 md:h-24 resize-none`} placeholder="Any special instructions or notes..." />
             </Section>
 
-            <button disabled={loading} className="w-full py-4 bg-[#8ed26b] hover:bg-[#7bc55a] text-white font-bold text-xl rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+            <button disabled={loading} className="w-full py-4 md:py-5 bg-[#8ed26b] hover:bg-[#7bc55a] text-white font-bold text-lg md:text-xl rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-h-[48px]">
               {loading ? (
                 <div className="flex items-center">
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -273,17 +272,17 @@ export default function B2BServiceRequirementPage() {
 
 /* ================= REUSABLE COMPONENTS ================= */
 const Section = ({ title, children }: any) => (
-  <div className="space-y-6">
-    <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">{title}</h3>
+  <div className="space-y-4 md:space-y-6">
+    <h3 className="text-xl md:text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">{title}</h3>
     {children}
   </div>
 );
 
 const Field = ({ label, required, children }: any) => (
   <div className="flex flex-col gap-2">
-    <label className="text-gray-700 font-semibold text-sm">{label} {required && <span className="text-red-500">*</span>}</label>
+    <label className="text-gray-700 font-semibold text-sm md:text-base">{label} {required && <span className="text-red-500">*</span>}</label>
     {children}
   </div>
 );
 
-const input = `w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#8ed26b] focus:border-[#8ed26b] transition-all duration-200 bg-gray-50 hover:bg-white text-gray-900 placeholder-gray-500`;
+const input = `w-full border border-gray-300 rounded-xl px-4 py-3 md:py-4 focus:outline-none focus:ring-2 focus:ring-[#8ed26b] focus:border-[#8ed26b] transition-all duration-200 bg-gray-50 hover:bg-white text-gray-900 placeholder-gray-500 text-sm md:text-base min-h-[44px]`;

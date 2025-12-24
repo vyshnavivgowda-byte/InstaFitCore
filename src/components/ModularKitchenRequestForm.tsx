@@ -3,19 +3,15 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useToast } from "@/components/Toast";
-import {
-  FaBed,
-  FaArchive,
-  FaTv,
-  FaThLarge,
-  FaUtensils,
-} from "react-icons/fa";
+import { FaUtensils, FaRegSquare, FaThLarge, FaCoffee, FaWarehouse, FaTimes } from "react-icons/fa";
 
-export default function CustomizedModularFurniturePage() {
-  const { toast } = useToast();
+type AddressField = [string, string, boolean];
+
+export default function CustomizedModularKitchenPage() {
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
-  const [form, setForm] = useState<any>({
+  const initialForm = {
     full_name: "",
     mobile_number: "",
     email: "",
@@ -28,186 +24,288 @@ export default function CustomizedModularFurniturePage() {
     city: "",
     state: "",
     pincode: "",
-    furniture_requirement_details: "",
+    kitchen_layout_description: "",
+    kitchen_space_size_details: "",
+    property_type_status: "",
     material_finish_preference: "",
+    storage_design_expectations: "",
+    appliances_to_be_integrated: "",
     expected_timeline: "",
-    approximate_budget_range: "",
+    budget_expectation: "",
+    site_visit_required: false,
+    site_visit_date: "",
     additional_notes: "",
-    measurements_available: false,
-  });
+  };
+
+  const [form, setForm] = useState<any>(initialForm);
+  const [referenceImages, setReferenceImages] = useState<File[]>([]);
 
   const handleChange = (e: any) => {
-    const { name, value, type, checked } = e.target;
+    let { name, value, type, checked } = e.target;
+
+    // Only allow digits for mobile_number and pincode
+    if (name === "mobile_number") {
+      value = value.replace(/\D/g, "");
+      if (value.length > 10) value = value.slice(0, 10);
+    }
+
+    if (name === "pincode") {
+      value = value.replace(/\D/g, "");
+      if (value.length > 6) value = value.slice(0, 6);
+    }
+
     setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setReferenceImages([...referenceImages, ...newFiles]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    const updated = [...referenceImages];
+    // Revoke the object URL to release memory
+    URL.revokeObjectURL(updated[index] as any);
+    updated.splice(index, 1);
+    setReferenceImages(updated);
   };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase
-      .from("customized_modular_furniture_requests")
-      .insert([form]);
+    try {
+      const { error } = await supabase
+        .from("customized_modular_kitchen_requests")
+        .insert([{ ...form, budget_expectation: Number(form.budget_expectation) }]);
 
-    setLoading(false);
+      setLoading(false);
 
-    if (error) {
-      toast({
-        title: "❌ Error",
-        description: "Submission failed",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "✅ Submitted",
-        description: "We will contact you shortly",
-        variant: "success",
-      });
+      if (error) {
+        console.error(error);
+        toast({
+          title: "❌ Error submitting request",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Consultation request submitted",
+          variant: "success",
+        });
+        setForm(initialForm);
+
+        // Revoke object URLs to clear previews
+        referenceImages.forEach(file => URL.revokeObjectURL(file as any));
+        setReferenceImages([]);
+      }
+    } catch (err) {
+      setLoading(false);
+      console.error(err);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f0f9f0] to-[#e8f5e8] py-12 px-4">
-      <div className="max-w-7xl mx-auto">
 
-        {/* HEADER */}
-        <div className="text-center mb-14">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Customized <span className="text-[#8ed26b]">Modular</span> Furniture
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#f0f9f0] to-[#e8f5e8] py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+            Customized <span className="text-[#8ed26b]">Modular</span> Kitchen
           </h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Share your requirements and our experts will assist you.
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Design your dream kitchen with our customized modular solutions. Request a consultation and our experts will reach out to you.
           </p>
         </div>
 
-        {/* FURNITURE TYPES */}
+        {/* Popular Kitchen Layouts */}
         <div className="mb-12">
-          <h2 className="text-2xl font-semibold text-center mb-6">
-            Popular Furniture Types
-          </h2>
+          <h2 className="text-2xl font-semibold text-center text-gray-800 mb-4">Popular Kitchen Layouts</h2>
           <div className="flex flex-wrap justify-center gap-3">
             {[
-              { name: "Modular Bed", icon: <FaBed /> },
-              { name: "Wardrobe", icon: <FaArchive /> },
-              { name: "TV Unit", icon: <FaTv /> },
-              { name: "Wall Unit", icon: <FaThLarge /> },
-              { name: "Crockery Unit", icon: <FaUtensils /> },
+              { name: "L-Shape Kitchen", icon: <FaUtensils /> },
+              { name: "U Shape Kitchen", icon: <FaRegSquare /> },
+              { name: "Parallel Kitchen", icon: <FaThLarge /> },
+              { name: "Straight Kitchen", icon: <FaCoffee /> },
+              { name: "Island Kitchen", icon: <FaWarehouse /> },
             ].map((item) => (
               <div
                 key={item.name}
-                className="flex items-center gap-2 bg-[#8ed26b] px-4 py-2 rounded-lg text-sm font-medium"
+                className="flex items-center gap-2 bg-[#8ed26b] text-black rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#7bc55a] transition-all cursor-pointer"
               >
-                {item.icon}
-                {item.name}
+                <span className="text-lg">{item.icon}</span>
+                <span>{item.name}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* FORM */}
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-          <div className="bg-[#8ed26b] py-5">
-            <h2 className="text-2xl text-white text-center font-bold">
-              Submit Your Requirements
-            </h2>
+        {/* Consultation Form */}
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+          <div className="bg-[#8ed26b] py-6 px-8">
+            <h2 className="text-2xl font-bold text-white text-center">Request Your Consultation</h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-8 space-y-10">
-
-            {/* CUSTOMER DETAILS */}
-            <Section title="Customer Details">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Input label="Full Name" name="full_name" required form={form} onChange={handleChange} />
-                <Input label="Mobile Number" name="mobile_number" required form={form} onChange={handleChange} />
-                <Input label="Email" name="email" type="email" required form={form} onChange={handleChange} />
+          <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-12">
+            {/* Customer Details */}
+            <div className="space-y-8">
+              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Customer Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Field label="Full Name" required>
+                  <input name="full_name" value={form.full_name} onChange={handleChange} required className={input} placeholder="e.g., John Doe" />
+                </Field>
+                <Field label="Mobile Number" required>
+                  <input
+                    name="mobile_number"
+                    value={form.mobile_number}
+                    onChange={handleChange}
+                    required
+                    className={input}
+                    placeholder="9876543210"
+                    pattern="\d{10}"
+                    title="Please enter a valid 10-digit mobile number"
+                  />
+                </Field>
+                <Field label="Email ID" required>
+                  <input type="email" name="email" value={form.email} onChange={handleChange} required className={input} placeholder="john@example.com" />
+                </Field>
               </div>
-            </Section>
+            </div>
 
-            {/* ADDRESS DETAILS – 2 ROWS */}
-            <Section title="Address Details">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Input label="Flat / House No" name="flat_no" required form={form} onChange={handleChange} />
-                <Input label="Floor" name="floor" required form={form} onChange={handleChange} />
-                <Input label="Building Name" name="building_name" required form={form} onChange={handleChange} />
-                <Input label="Street" name="street" required form={form} onChange={handleChange} />
+            {/* Address Details */}
+            <div className="space-y-8">
+              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Address Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {([
+                  ["flat_no", "Flat / House / Plot No", true],
+                  ["floor", "Floor", true],
+                  ["building_name", "Building / Apartment Name", true],
+                  ["street", "Street / Locality", true],
+                  ["area", "Area / Zone", true],
+                  ["landmark", "Landmark (Optional)", false],
+                  ["city", "City / Town", true],
+                  ["state", "State", true],
+                  ["pincode", "Pincode", true],
+                ] as AddressField[]).map(([name, label, required]) => (
+                  <Field key={name} label={label} required={required}>
+                    <input name={name} value={form[name]} onChange={handleChange} required={required} className={input} placeholder={`Enter ${label.toLowerCase()}`} />
+                  </Field>
+                ))}
+              </div>
+            </div>
 
-                <Input label="Area" name="area" required form={form} onChange={handleChange} />
-                <Input label="City" name="city" required form={form} onChange={handleChange} />
-                <Input label="State" name="state" required form={form} onChange={handleChange} />
-                <Input label="Pincode" name="pincode" required form={form} onChange={handleChange} />
+            {/* Kitchen Details */}
+            <div className="space-y-8">
+              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Kitchen / Furniture Details</h3>
+              <div className="space-y-6">
+                <Field label="Layout / Shape Description">
+                  <textarea name="kitchen_layout_description" className={`${input} h-32 resize-none`} value={form.kitchen_layout_description} onChange={handleChange} placeholder="L-shape, U-shape, straight, island – describe in your own words" />
+                </Field>
+                <Field label="Space / Size Details">
+                  <textarea name="kitchen_space_size_details" className={`${input} h-24 resize-none`} value={form.kitchen_space_size_details} onChange={handleChange} placeholder="Approximate size or description of available space" />
+                </Field>
+                <Field label="Property Type & Status" required>
+                  <input name="property_type_status" value={form.property_type_status} onChange={handleChange} required className={input} placeholder="Apartment / Independent house / New or Renovation" />
+                </Field>
+                <Field label="Material & Finish Preference">
+                  <input name="material_finish_preference" value={form.material_finish_preference} onChange={handleChange} className={input} placeholder="If any – customer can freely describe" />
+                </Field>
+                <Field label="Storage & Design Expectations">
+                  <textarea name="storage_design_expectations" className={`${input} h-24 resize-none`} value={form.storage_design_expectations} onChange={handleChange} placeholder="Cabinets, drawers, pantry units, etc." />
+                </Field>
+                <Field label="Appliances to be Integrated">
+                  <input name="appliances_to_be_integrated" value={form.appliances_to_be_integrated} onChange={handleChange} className={input} placeholder="Hob, chimney, oven, dishwasher..." />
+                </Field>
+              </div>
+            </div>
 
-                <div className="md:col-span-4">
-                  <Input label="Landmark (Optional)" name="landmark" form={form} onChange={handleChange} />
+            {/* Timeline & Budget */}
+            <div className="space-y-8">
+              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Timeline & Budget</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Field label="Expected Timeline" required>
+                  <input name="expected_timeline" value={form.expected_timeline} onChange={handleChange} required className={input} placeholder="e.g., Within 3 months" />
+                </Field>
+                <Field label="Budget Expectation" required>
+                  <input type="number" name="budget_expectation" value={form.budget_expectation} onChange={handleChange} required className={input} placeholder="e.g., 50000" />
+                </Field>
+              </div>
+            </div>
+
+            {/* Site Visit */}
+            {/* Site Visit */}
+            <div className="space-y-8">
+              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Site Visit</h3>
+
+              <label className="flex items-center gap-3 text-base font-semibold">
+                <input
+                  type="checkbox"
+                  name="site_visit_required"
+                  className="w-5 h-5 accent-[#8ed26b]"
+                  checked={form.site_visit_required}
+                  onChange={handleChange}
+                />
+                Site Visit Required
+              </label>
+
+              {form.site_visit_required && (
+                <Field label="Preferred Site Visit Date">
+                  <input
+                    type="date"
+                    name="site_visit_date"
+                    value={form.site_visit_date}
+                    onChange={handleChange}
+                    className={input}
+                    min={tomorrow}
+                  />
+                </Field>
+              )}
+            </div>
+
+
+            {/* Reference Images */}
+            <div className="space-y-4">
+              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Reference Images / Inspiration (Optional)</h3>
+              <input type="file" multiple accept="image/*" onChange={handleImageChange} className={input} />
+              {referenceImages.length > 0 && (
+                <div className="flex flex-wrap gap-4 mt-2">
+                  {referenceImages.map((file, index) => (
+                    <div key={index} className="relative w-24 h-24 border rounded-lg overflow-hidden">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt="preview"
+                        className="w-full h-full object-cover"
+                        onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs hover:bg-red-600"
+                      >
+                        <FaTimes />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            </Section>
+              )}
+            </div>
 
-            {/* REQUIREMENTS */}
-           <Section title="Furniture Requirement">
-  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-    <Textarea
-      label="Requirement Details"
-      name="furniture_requirement_details"
-      span={2}
-      required
-      form={form}
-      onChange={handleChange}
-    />
-    <Input
-      label="Material / Finish"
-      name="material_finish_preference"
-      form={form}
-      onChange={handleChange}
-    />
-    <Input
-      label="Expected Timeline"
-      name="expected_timeline"
-      type="date"
-      form={form}
-      onChange={handleChange}
-    />
-    
-   {/* Budget + Additional Notes + Measurements row */}
-<div className="md:col-span-4 flex items-start gap-4">
-  <Input
-    label="Budget Range"
-    name="approximate_budget_range"
-    form={form}
-    onChange={handleChange}
-    className="flex-1"
-  />
+            {/* Additional Notes */}
+            <div className="space-y-8">
+              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Additional Notes</h3>
+              <textarea name="additional_notes" className={`${input} h-24 resize-none`} value={form.additional_notes} onChange={handleChange} placeholder="Any special instructions or notes..." />
+            </div>
 
-  <Textarea
-    label="Additional Notes"
-    name="additional_notes"
-    form={form}
-    onChange={handleChange}
-    className="flex-1"
-  />
-
-  <div className="flex items-center mt-6 gap-2">
-    <input
-      type="checkbox"
-      name="measurements_available"
-      checked={form.measurements_available}
-      onChange={handleChange}
-      className="w-5 h-5 accent-[#8ed26b]"
-    />
-    <span className="text-sm font-medium">Measurements Available</span>
-  </div>
-</div>
-
-  </div>
-</Section>
-
-
-            <button
-              disabled={loading}
-              className="w-full py-4 bg-[#8ed26b] text-white font-bold text-lg rounded-xl"
-            >
-              {loading ? "Submitting..." : "Submit Requirement"}
+            {/* Submit Button */}
+            <button disabled={loading} className="w-full py-4 bg-[#8ed26b] hover:bg-[#7bc55a] text-white font-bold text-xl rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+              {loading ? "Submitting..." : "Request Modular Furniture Consultation"}
             </button>
-
           </form>
         </div>
       </div>
@@ -215,51 +313,15 @@ export default function CustomizedModularFurniturePage() {
   );
 }
 
-/* ================== REUSABLE UI ================== */
-
-const Section = ({ title, children }: any) => (
-  <div>
-    <h3 className="text-xl font-semibold border-b-2 border-[#8ed26b] pb-1 mb-4">
-      {title}
-    </h3>
+/* ================= REUSABLE COMPONENTS ================= */
+const Field = ({ label, required, children }: any) => (
+  <div className="flex flex-col gap-3">
+    <label className="text-gray-700 font-semibold text-base">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
     {children}
   </div>
 );
 
-const Input = ({ label, name, type = "text", required, form, onChange }: any) => (
-  <div>
-    <label className="text-sm font-medium text-gray-700">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <input
-      type={type}
-      name={name}
-      value={form[name]}
-      onChange={onChange}
-      required={required}
-      placeholder={`Enter ${label}`}
-      className={input}
-    />
-  </div>
-);
-
-const Textarea = ({ label, name, span = 1, required, form, onChange }: any) => (
-  <div className={`md:col-span-${span}`}>
-    <label className="text-sm font-medium text-gray-700">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <textarea
-      name={name}
-      value={form[name]}
-      onChange={onChange}
-      required={required}
-      placeholder={`Enter ${label}`}
-      className={`${input} h-20 resize-none`}
-    />
-  </div>
-);
-
-/* ================== STYLES ================== */
-
-const input =
-  "w-full border border-gray-300 rounded-xl px-4 py-3 bg-gray-50 focus:ring-2 focus:ring-[#8ed26b] focus:outline-none";
+/* ================= INPUT STYLES ================= */
+const input = `w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#8ed26b] focus:border-[#8ed26b] transition-all duration-200 bg-gray-50 hover:bg-white text-gray-900 placeholder-gray-500`;

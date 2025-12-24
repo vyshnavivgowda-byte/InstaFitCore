@@ -71,7 +71,7 @@ export default function FullNavbar() {
       id: "custom-furniture",
       name: "Modular Furniture",
       image_url: "/custom-furniture.jpg",
-      link: "/site/request/customized-modular-furniture",
+      link: "/site/services?topLevel=Customized%20Modular%20Furniture",
       subServices: [
         "Modular Bed",
         "Modular Wardrobe",
@@ -84,7 +84,7 @@ export default function FullNavbar() {
       id: "custom-kitchen",
       name: "Modular Kitchen",
       image_url: "/custom-kitchen.jpg",
-      link: "/site/request/customized-modular-kitchen",
+      link: "/site/services?topLevel=Customized%20Modular%20Kitchen",
       subServices: [
         "Kitchen Design & Site Measurement",
         "Modular Kitchen Manufacturing",
@@ -97,7 +97,7 @@ export default function FullNavbar() {
       id: "packer-movers",
       name: "Packer and Movers",
       image_url: "/packer.jpg",
-      link: "/site/request/packer-and-movers",
+      link: "/site/services?topLevel=Relocation%20Services",
       subServices: [
         "Furniture Dismantling",
         "Packing & Labelling",
@@ -110,7 +110,7 @@ export default function FullNavbar() {
       id: "b2b-request",
       name: "B2B Services",
       image_url: "/b2.jpg",
-      link: "/site/request/b2b-service-requirement",
+      link: "/site/services?topLevel=B2B%20Services",
       subServices: [
         "Last-Mile Furniture Delivery",
         "Delivery-cum-Installation",
@@ -127,13 +127,7 @@ export default function FullNavbar() {
     },
   ];
 
-  // --- EFFECTS ---
-  // Scroll shadow
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 80);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+
 
   // Close search dropdown outside click
   useEffect(() => {
@@ -209,14 +203,35 @@ export default function FullNavbar() {
 
   const [categoryShrunk, setCategoryShrunk] = useState(false);
 
+  const lastScrollY = useRef(0);
+
   useEffect(() => {
+    let isShrunk = false;
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 80);
-      setCategoryShrunk(window.scrollY > 80); // shrink category circles
+      const currentY = window.scrollY;
+
+      // Header shadow (simple, stable)
+      setIsScrolled(currentY > 80);
+
+      // CATEGORY IMAGES — hysteresis
+      if (!isShrunk && currentY > 120) {
+        isShrunk = true;
+        setCategoryShrunk(true);
+      }
+
+      if (isShrunk && currentY < 40) {
+        isShrunk = false;
+        setCategoryShrunk(false);
+      }
+
+      lastScrollY.current = currentY;
     };
-    window.addEventListener("scroll", handleScroll);
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
 
   const router = useRouter();
 

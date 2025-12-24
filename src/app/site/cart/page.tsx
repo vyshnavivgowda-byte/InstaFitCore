@@ -374,7 +374,6 @@ const CartItemCard: React.FC<{
                         >
                             <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
                         </button>
-                      // Continuation of the code from where it left off
 
                         <span className="text-sm sm:text-base font-extrabold w-6 text-center text-gray-900">
                             {item.isUpdating ? <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin mx-auto" style={{ color: PRIMARY_COLOR }} /> : item.quantity}
