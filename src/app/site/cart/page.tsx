@@ -65,14 +65,6 @@ type AddressFields = {
     pincode: string;
 };
 
-const SERVICEABLE_PINCODES = [
-    "560091", "560037", "560016", "560065", "560024", "560094", "560092",
-    "560001", "560051", "560025", "560030", "560002", "560060", "560059",
-    "560034", "560018", "560068", "560099", "560062", "560070", "560098",
-    "560088", "560054", "560022", "560010", "560079", "560055", "560072",
-    "560003", "560004", "560083"
-];
-
 // --- Helpers (Kept as is) ---
 const calculateUnitServicePrice = (
     service: ServiceDetails | null,
@@ -243,6 +235,39 @@ const AddressForm: React.FC<{
     );
 };
 
+// Custom Modal Component for Removal Confirmation
+const RemoveModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    itemName: string;
+}> = ({ isOpen, onClose, onConfirm, itemName }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">Confirm Removal</h3>
+                <p className="text-gray-600 mb-6">Are you sure you want to remove "{itemName}" from your cart?</p>
+                <div className="flex justify-end space-x-4">
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                    >
+                        Remove
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // ---------------- CartItemCard (Kept as is for functionality) ----------------
 const CartItemCard: React.FC<{
     item: CartItem;
@@ -349,6 +374,8 @@ const CartItemCard: React.FC<{
                         >
                             <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
                         </button>
+                      // Continuation of the code from where it left off
+
                         <span className="text-sm sm:text-base font-extrabold w-6 text-center text-gray-900">
                             {item.isUpdating ? <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin mx-auto" style={{ color: PRIMARY_COLOR }} /> : item.quantity}
                         </span>
@@ -383,11 +410,39 @@ export default function CartPage() {
     const [isPincodeValid, setIsPincodeValid] = useState(true);
     const [addressErrors, setAddressErrors] = useState<{ [key: string]: string }>({});
     const [submitAttempted, setSubmitAttempted] = useState(false);
+    const [serviceablePincodes, setServiceablePincodes] = useState<string[]>([]);
 
     const [addressFields, setAddressFields] = useState<AddressFields>({
         customer_name: "", mobile: "", alternate_mobile: "", flat_no: "", floor: "",
         building_name: "", street: "", area_zone: "", landmark: "", city: "", state: "", pincode: "",
     });
+
+    // Modal state for removal confirmation
+    const [removeModal, setRemoveModal] = useState<{ isOpen: boolean; itemId: number | null; itemName: string }>({
+        isOpen: false,
+        itemId: null,
+        itemName: "",
+    });
+
+    const fetchServiceablePincodes = useCallback(async () => {
+        try {
+            const { data, error } = await supabase
+                .from("service_pincodes")
+                .select("pincode");
+
+            if (error) throw error;
+
+            const pincodes = data?.map((row: any) => row.pincode) || [];
+            setServiceablePincodes(pincodes);
+        } catch (err: any) {
+            console.error("Failed to fetch serviceable pincodes:", err);
+            setServiceablePincodes([]);
+        }
+    }, []);
+    useEffect(() => {
+        fetchServiceablePincodes();
+    }, [fetchServiceablePincodes]);
+
 
     const fetchCartItems = useCallback(async () => {
         setLoading(true);
@@ -470,9 +525,10 @@ export default function CartPage() {
         if (pincode) {
             if (!/^\d{6}$/.test(pincode)) {
                 errors.pincode = "Must be 6 digits.";
-            } else if (!SERVICEABLE_PINCODES.includes(pincode)) {
+            } else if (!serviceablePincodes.includes(pincode)) {
                 errors.pincode = "Service not available in this pincode.";
             }
+
         } else {
             errors.pincode = "Pincode is required.";
         }
@@ -485,8 +541,9 @@ export default function CartPage() {
         const errors = validateAddress(addressFields);
         setAddressErrors(errors);
         const pincode = addressFields.pincode.replace(/\D/g, "");
-        setIsPincodeValid(!!pincode && SERVICEABLE_PINCODES.includes(pincode));
-    }, [addressFields]);
+        setIsPincodeValid(!!pincode && serviceablePincodes.includes(pincode));
+    }, [addressFields, serviceablePincodes]);
+
 
     // Update functions (kept as is)
     const handleUpdateSelectedServices = useCallback(
@@ -520,23 +577,37 @@ export default function CartPage() {
 
     const handleRemoveItem = useCallback(
         async (itemId: number) => {
-            if (!confirm("Are you sure you want to remove this item?")) return;
-            setCartItems((prev) => prev.map((it) => (it.id === itemId ? { ...it, isUpdating: true } : it)));
-            const { error } = await supabase.from("cart_items").delete().eq("id", itemId);
-            if (error) {
-                console.error("Remove item error:", error);
-                toast({ title: "Remove failed", description: error.message, variant: "destructive" });
-                setCartItems((prev) => prev.map((it) => (it.id === itemId ? { ...it, isUpdating: false } : it)));
-            } else {
-                setCartItems((prev) => prev.filter((it) => it.id !== itemId));
-                toast({ title: "Removed", description: "Item removed from cart.", variant: "default" });
-            }
+            const item = cartItems.find(it => it.id === itemId);
+            if (!item) return;
+
+            setRemoveModal({
+                isOpen: true,
+                itemId,
+                itemName: item.service?.service_name || "this item",
+            });
         },
-        [toast]
+        [cartItems]
     );
 
+    const confirmRemoveItem = useCallback(async () => {
+        const { itemId } = removeModal;
+        if (!itemId) return;
+
+        setCartItems((prev) => prev.map((it) => (it.id === itemId ? { ...it, isUpdating: true } : it)));
+        const { error } = await supabase.from("cart_items").delete().eq("id", itemId);
+        if (error) {
+            console.error("Remove item error:", error);
+            toast({ title: "Remove failed", description: error.message, variant: "destructive" });
+            setCartItems((prev) => prev.map((it) => (it.id === itemId ? { ...it, isUpdating: false } : it)));
+        } else {
+            setCartItems((prev) => prev.filter((it) => it.id !== itemId));
+            toast({ title: "Removed", description: "Item removed from cart.", variant: "default" });
+        }
+        setRemoveModal({ isOpen: false, itemId: null, itemName: "" });
+    }, [removeModal, toast]);
+
     // ------------------ Checkout: ONE payment for entire cart ------------------
-    const handleCheckout = useCallback(async () => {
+    const handleCheckout = useCallback(() => {
         setSubmitAttempted(true);
 
         if (cartItems.length === 0) {
@@ -544,125 +615,31 @@ export default function CartPage() {
             return;
         }
 
+        // Validate address
         const errors = validateAddress(addressFields);
-        if (Object.keys(errors).length > 0) {
-            setAddressErrors(errors);
-            toast({ title: "Address Error", description: "Please complete and fix the highlighted address fields.", variant: "destructive" });
-            return;
+        setAddressErrors(errors); // <-- make sure errors state is updated
+        const hasAddressErrors = Object.keys(errors).length > 0;
+
+        // Validate service selection
+        const invalidItems = cartItems.filter(it => !it.service || !it.selected_services?.length);
+        const hasInvalidItems = invalidItems.length > 0;
+
+        // If any errors, show messages and stop
+        if (hasAddressErrors || hasInvalidItems) {
+            // Show toast for missing service selections
+            if (hasInvalidItems) {
+                toast({ title: "Selection missing", description: "Please select service options for all items.", variant: "destructive" });
+            }
+            return; // Stop checkout
         }
 
-        const invalid = cartItems.find((it) => !it.service || !it.selected_services?.length);
-        if (invalid) {
-            toast({ title: "Selection missing", description: "Please select service options (e.g., Installation) for all items.", variant: "destructive" });
-            return;
-        }
-
-        setCartItems((prev) => prev.map((it) => ({ ...it, isUpdating: true })));
-
-        try {
-            const { data: userData, error: userErr } = await supabase.auth.getUser();
-            if (userErr) throw new Error("Unable to get user. Please login and try again.");
-            const user = userData?.user;
-            if (!user) throw new Error("Not logged in. Please login and try again.");
-
-            await loadRazorpay();
-
-            const totalAmountPaise = Math.round(cartTotal * 100);
-            if (totalAmountPaise <= 0) throw new Error("Invalid total amount. Total must be greater than ₹0.");
-
-            const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-            if (!razorpayKey) throw new Error("Razorpay key not set.");
-
-            const options: any = {
-                key: razorpayKey,
-                amount: totalAmountPaise,
-                currency: "INR",
-                name: "Insta Fit Core",
-                description: `Payment for ${cartItems.length} items`,
-                prefill: { name: addressFields.customer_name, email: user.email, contact: addressFields.mobile },
-                theme: { color: PRIMARY_COLOR },
-                handler: async (response: any) => {
-                    try {
-                        const { data: userData } = await supabase.auth.getUser();
-                        const user = userData?.user;
-                        if (!user) throw new Error("User not logged in");
-
-                        const today = new Date();
-
-                        // Build full address string from addressFields
-                        const fullAddress = [
-                            addressFields.flat_no,
-                            addressFields.floor ? `Floor ${addressFields.floor}` : '',
-                            addressFields.building_name,
-                            addressFields.street,
-                            addressFields.area_zone,
-                            addressFields.landmark,
-                            addressFields.city,
-                            addressFields.state,
-                            `${addressFields.pincode}`
-                        ].filter(Boolean).join(", ");
-
-                        for (const item of cartItems) {
-                            const unitPrice = calculateUnitServicePrice(item.service, item.selected_services);
-                            const itemTotal = unitPrice * item.quantity;
-
-                            const { error } = await supabase.from("bookings").insert([
-                                {
-                                    user_id: user.id,
-                                    customer_name: addressFields.customer_name.trim(),
-                                    date: today,
-                                    booking_time: "10:00",
-                                    service_name: item.service?.service_name || "Unknown Service",
-                                    service_types: item.selected_services || [],
-                                    total_price: itemTotal,
-                                    address: fullAddress,
-                                    payment_id: response.razorpay_payment_id,
-                                    service_id: item.service_id,
-                                    customer_mobile: addressFields.mobile,
-                                    quantity: item.quantity,
-                                },
-                            ]);
-
-                            if (error) {
-                                console.error("Insert error for item:", item.id, error);
-                                throw new Error(`Failed to save booking for ${item.service?.service_name}: ${error.message}`);
-                            }
-                        }
-
-                        // Clear cart after successful booking
-                        const { error: deleteError } = await supabase.from("cart_items").delete().eq("user_id", user.id);
-                        if (deleteError) {
-                            console.warn("Failed to clear cart after booking:", deleteError);
-                        }
-
-                        toast({ title: "Booking Successful", description: "Your services have been booked and paid for.", variant: "success" });
-                        router.push("/site/order-tracking");
-                    } catch (err: any) {
-                        console.error("Booking save error:", err);
-                        toast({ title: "Booking Failed", description: err.message || "Please try again. Payment might have gone through, check order history.", variant: "destructive" });
-                    }
-                },
-                modal: {
-                    ondismiss: () => {
-                        setCartItems((prev) => prev.map((it) => ({ ...it, isUpdating: false })));
-                        setSubmitAttempted(false);
-                    }
-                }
-            };
-
-            const rzp = new (window as any).Razorpay(options);
-            rzp.on("payment.failed", (resp: any) => {
-                console.error("Razorpay payment.failed:", resp);
-                toast({ title: "Payment failed", description: resp?.error?.description || "Payment was cancelled or failed. Try again.", variant: "destructive" });
-                setCartItems((prev) => prev.map((it) => ({ ...it, isUpdating: false })));
-            });
-            rzp.open();
-        } catch (err: any) {
-            console.error("handleCheckout error:", err);
-            toast({ title: "Checkout Error", description: err?.message || "Checkout failed. Try again.", variant: "destructive" });
-            setCartItems((prev) => prev.map((it) => ({ ...it, isUpdating: false })));
-        }
+        // All validations passed → proceed
+        router.push({
+            pathname: "/site/checkout-review",
+            query: { cartTotal: cartTotal.toFixed(2) }
+        });
     }, [cartItems, cartTotal, router, toast, addressFields]);
+
 
     // Render states (loading, error, empty cart) - unchanged
     if (loading)
@@ -744,10 +721,13 @@ export default function CartPage() {
                     <AddressForm
                         fields={addressFields}
                         setFields={setAddressFields}
-                        // Only show errors if the checkout button has been clicked
-                        errors={submitAttempted ? addressErrors : {}}
+                        errors={{
+                            ...((submitAttempted) ? addressErrors : {}),
+                            pincode: addressErrors.pincode, // always show pincode validation
+                        }}
                         disabled={cartItems.some(it => it.isUpdating)}
                     />
+
                 </div>
 
                 {/* 3. Order Summary & Checkout */}
@@ -777,19 +757,17 @@ export default function CartPage() {
                     </div>
 
                     <button
-                        onClick={() => {
-                            setSubmitAttempted(true);
-                            handleCheckout();
-                        }}
-                        disabled={cartItems.length === 0 || cartTotal === 0 || cartItems.some(it => it.isUpdating) || !isPincodeValid}
+                        onClick={handleCheckout}
+                        disabled={
+                            cartItems.length === 0 ||
+                            cartItems.some(it => !it.selected_services?.length) ||
+                            !isPincodeValid ||
+                            cartItems.some(it => it.isUpdating)
+                        }
                         className={`w-full mt-6 sm:mt-8 py-3 sm:py-4 text-white text-lg sm:text-xl font-bold rounded-xl shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-[1.01] hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed`}
                         style={{ backgroundColor: PRIMARY_COLOR }}
                     >
-                        {cartItems.some(it => it.isUpdating) ? (
-                            <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                        ) : (
-                            `Pay ₹${cartTotal.toFixed(2)}`
-                        )}
+                        Continue
                         <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 ml-2" />
                     </button>
 
@@ -800,6 +778,14 @@ export default function CartPage() {
                 </div>
 
             </div>
+
+            {/* Remove Modal */}
+            <RemoveModal
+                isOpen={removeModal.isOpen}
+                onClose={() => setRemoveModal({ isOpen: false, itemId: null, itemName: "" })}
+                onConfirm={confirmRemoveItem}
+                itemName={removeModal.itemName}
+            />
         </div>
     );
 }

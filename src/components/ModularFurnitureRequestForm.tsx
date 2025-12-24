@@ -90,36 +90,31 @@ export default function CustomizedModularFurniturePage() {
             Customized <span className="text-[#8ed26b]">Modular</span> Furniture
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Design your perfect space with our customized modular furniture solutions. 
+            Design your perfect space with our customized modular furniture solutions.
             Submit your requirements and our team will contact you shortly.
           </p>
         </div>
 
         {/* Furniture Types Showcase */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-semibold text-center text-gray-800 mb-8">
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold text-center text-gray-800 mb-4">
             Popular Furniture Types
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="flex flex-wrap justify-center gap-3">
             {[
-              { name: "Modular Bed", icon: <FaBed />, desc: "Customizable beds for comfort" },
-              { name: "Wardrobe", icon: <FaArchive />, desc: "Spacious storage solutions" },
-              { name: "TV Unit / Entertainment Unit", icon: <FaTv />, desc: "Modern media centers" },
-              { name: "Wall Unit", icon: <FaThLarge />, desc: "Versatile wall storage" },
-              { name: "Crockery Unit", icon: <FaUtensils />, desc: "Elegant kitchen storage" },
-              { name: "Dresser Unit", icon: <FaArchive />, desc: "Stylish dressing areas" },
+              { name: "Modular Bed", icon: <FaBed /> },
+              { name: "Wardrobe", icon: <FaArchive /> },
+              { name: "TV Unit / Entertainment Unit", icon: <FaTv /> },
+              { name: "Wall Unit", icon: <FaThLarge /> },
+              { name: "Crockery Unit", icon: <FaUtensils /> },
+              { name: "Dresser Unit", icon: <FaArchive /> },
             ].map((item) => (
               <div
                 key={item.name}
-                className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 text-center border border-gray-100 hover:border-[#8ed26b] group"
+                className="flex items-center gap-2 bg-[#8ed26b] text-black rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#7bc55a] transition-all cursor-pointer"
               >
-                <div className="flex justify-center items-center h-20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <div className="text-6xl text-[#7bc55a]">
-                    {item.icon}
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">{item.name}</h3>
-                <p className="text-gray-600">{item.desc}</p>
+                <span className="text-lg">{item.icon}</span>
+                <span>{item.name}</span>
               </div>
             ))}
           </div>
@@ -134,12 +129,15 @@ export default function CustomizedModularFurniturePage() {
           </div>
           <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-12">
             {/* Customer Details */}
-            <div className="space-y-8">
-              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">
                 Customer Details
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Field label="Full Name" required>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-gray-700 font-medium text-sm mb-1">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
                   <input
                     name="full_name"
                     required
@@ -148,8 +146,12 @@ export default function CustomizedModularFurniturePage() {
                     className={input}
                     placeholder="e.g., John Doe"
                   />
-                </Field>
-                <Field label="Mobile Number" required>
+                </div>
+
+                <div className="flex-1">
+                  <label className="block text-gray-700 font-medium text-sm mb-1">
+                    Mobile Number <span className="text-red-500">*</span>
+                  </label>
                   <input
                     name="mobile_number"
                     required
@@ -158,8 +160,12 @@ export default function CustomizedModularFurniturePage() {
                     className={input}
                     placeholder="e.g., +91 9876543210"
                   />
-                </Field>
-                <Field label="Email ID" required>
+                </div>
+
+                <div className="flex-1">
+                  <label className="block text-gray-700 font-medium text-sm mb-1">
+                    Email ID <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="email"
                     name="email"
@@ -169,59 +175,70 @@ export default function CustomizedModularFurniturePage() {
                     className={input}
                     placeholder="e.g., john@example.com"
                   />
-                </Field>
+                </div>
               </div>
             </div>
 
+
+
             {/* Address Details */}
-            <div className="space-y-8">
-              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">
                 Address Details
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-{([
-  ["flat_no", "Flat / House / Plot No", true],
-  ["floor", "Floor", true],
-  ["building_name", "Building / Apartment Name", true],
-  ["street", "Street / Locality", true],
-  ["area", "Area / Zone", true],
-  ["landmark", "Landmark (Optional)", false],
-  ["city", "City / Town", true],
-  ["state", "State", true],
-  ["pincode", "Pincode", true],
-] as AddressField[]).map(([name, label, required]) => (
-  <Field key={name} label={label} required={required}>
-    <input
-      name={name}
-      required={required}
-      value={form[name]}
-      onChange={handleChange}
-      className={input}
-      placeholder={`Enter ${label.toLowerCase()}`}
-    />
-  </Field>
-))}
-
+              <div className="flex flex-wrap gap-4">
+                {([
+                  ["flat_no", "Flat / House / Plot No", true],
+                  ["floor", "Floor", true],
+                  ["building_name", "Building / Apartment Name", true],
+                  ["street", "Street / Locality", true],
+                  ["area", "Area / Zone", true],
+                  ["landmark", "Landmark (Optional)", false],
+                  ["city", "City / Town", true],
+                  ["state", "State", true],
+                  ["pincode", "Pincode", true],
+                ] as AddressField[]).map(([name, label, required]) => (
+                  <div key={name} className="flex-1 min-w-[200px]">
+                    <label className="block text-gray-700 font-medium text-sm mb-1">
+                      {label} {required && <span className="text-red-500">*</span>}
+                    </label>
+                    <input
+                      name={name}
+                      required={required}
+                      value={form[name]}
+                      onChange={handleChange}
+                      className={input}
+                      placeholder={`Enter ${label.toLowerCase()}`}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Furniture Requirement */}
-            <div className="space-y-8">
-              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">
                 Furniture Requirement
               </h3>
-              <div className="space-y-8">
-                <Field label="Requirement Details" required>
+              <div className="flex flex-wrap gap-4">
+                <div className="flex-1 min-w-[250px]">
+                  <label className="block text-gray-700 font-medium text-sm mb-1">
+                    Requirement Details <span className="text-red-500">*</span>
+                  </label>
                   <textarea
                     name="furniture_requirement_details"
                     required
-                    className={`${input} h-32 resize-none`}
+                    className={`${input} h-28 resize-none`}
                     value={form.furniture_requirement_details}
                     onChange={handleChange}
-                    placeholder="Describe your furniture requirements in detail..."
+                    placeholder="Describe your furniture requirements..."
                   />
-                </Field>
-                <Field label="Material / Finish Preference">
+                </div>
+
+                <div className="flex-1 min-w-[250px]">
+                  <label className="block text-gray-700 font-medium text-sm mb-1">
+                    Material / Finish Preference
+                  </label>
                   <input
                     name="material_finish_preference"
                     value={form.material_finish_preference}
@@ -229,18 +246,13 @@ export default function CustomizedModularFurniturePage() {
                     className={input}
                     placeholder="e.g., Wood, laminate, color preferences"
                   />
-                </Field>
-                <label className="flex items-center gap-3 text-base text-gray-700 font-semibold">
-                  <input
-                    type="checkbox"
-                    name="measurements_available"
-                    checked={form.measurements_available}
-                    onChange={handleChange}
-                    className="w-5 h-5 accent-[#8ed26b]"
-                  />
-                  Measurements Available
-                </label>
-                <Field label="Expected Timeline (Select Date)" required>
+                </div>
+
+
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-gray-700 font-medium text-sm mb-1">
+                    Expected Timeline <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="date"
                     name="expected_timeline"
@@ -250,8 +262,12 @@ export default function CustomizedModularFurniturePage() {
                     className={input}
                     min={new Date().toISOString().split("T")[0]}
                   />
-                </Field>
-                <Field label="Approximate Budget Range" required>
+                </div>
+
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-gray-700 font-medium text-sm mb-1">
+                    Approximate Budget Range <span className="text-red-500">*</span>
+                  </label>
                   <input
                     name="approximate_budget_range"
                     required
@@ -260,16 +276,31 @@ export default function CustomizedModularFurniturePage() {
                     className={input}
                     placeholder="e.g., ₹50,000 - ₹1,00,000"
                   />
-                </Field>
-                <Field label="Additional Notes / Special Instructions">
+                </div>
+
+                <div className="flex-1 min-w-full">
+                  <label className="block text-gray-700 font-medium text-sm mb-1">
+                    Additional Notes / Special Instructions
+                  </label>
                   <textarea
                     name="additional_notes"
                     value={form.additional_notes}
                     onChange={handleChange}
-                    className={`${input} h-24 resize-none`}
+                    className={`${input} h-20 resize-none`}
                     placeholder="Any special instructions or notes..."
                   />
-                </Field>
+                </div>
+
+                <div className="flex-1 min-w-[150px] flex items-center gap-2 mt-6">
+                  <input
+                    type="checkbox"
+                    name="measurements_available"
+                    checked={form.measurements_available}
+                    onChange={handleChange}
+                    className="w-5 h-5 accent-[#8ed26b]"
+                  />
+                  <span className="text-gray-700 font-medium text-sm">Measurements Available</span>
+                </div>
               </div>
             </div>
 

@@ -11,7 +11,8 @@ import {
   LogOut,
   MessageCircle,
   ClipboardCheck,
-  ClipboardList, // ✅ NEW ICON
+  ClipboardList,
+  MapPin, // ✅ icon for Pincodes
 } from "lucide-react";
 
 interface SubMenuItem {
@@ -65,7 +66,6 @@ export default function AdminSidebar() {
       icon: <ClipboardCheck size={20} />,
     },
 
-    // ✅ NEW SERVICE REQUESTS TAB
     {
       name: "Service Requests",
       path: "/admin/allservicesrequest",
@@ -77,11 +77,19 @@ export default function AdminSidebar() {
       path: "/admin/reviews",
       icon: <MessageCircle size={20} />,
     },
+
     {
-    name: "Careers",
-    path: "/admin/admincarrer",
-    icon: <Folder size={20} />, // you can replace with a more appropriate icon
-  },
+      name: "Careers",
+      path: "/admin/admincarrer",
+      icon: <Folder size={20} />,
+    },
+
+    // ✅ Pincodes Menu Item
+    {
+      name: "Pincodes",
+      path: "/admin/pincodes",
+      icon: <MapPin size={20} />,
+    },
   ];
 
   const renderMenu = (items: MenuItem[]) =>
@@ -92,10 +100,9 @@ export default function AdminSidebar() {
             href={item.path!}
             className={`
               flex items-center gap-3 px-5 py-3 rounded-xl text-sm font-medium transition-all
-              ${
-                pathname === item.path
-                  ? "bg-white text-gray-900 shadow-lg"
-                  : "hover:bg-gray-700 hover:translate-x-1"
+              ${pathname === item.path
+                ? "bg-white text-gray-900 shadow-lg"
+                : "hover:bg-gray-700 hover:translate-x-1"
               }
             `}
           >
@@ -116,10 +123,9 @@ export default function AdminSidebar() {
                   href={sub.path}
                   className={`
                     flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all
-                    ${
-                      pathname === sub.path
-                        ? "bg-gray-200 text-gray-900 shadow-sm"
-                        : "text-gray-300 hover:bg-gray-700 hover:translate-x-1"
+                    ${pathname === sub.path
+                      ? "bg-gray-200 text-gray-900 shadow-sm"
+                      : "text-gray-300 hover:bg-gray-700 hover:translate-x-1"
                     }
                   `}
                 >
@@ -135,15 +141,16 @@ export default function AdminSidebar() {
 
   return (
     <aside className="w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white p-6 flex flex-col shadow-2xl h-screen sticky top-0">
-      <div className="mb-10 flex justify-center">
+      <div className="mb-5 flex justify-center">
         <img
-          src="/footerlogo.png"
+          src="/footerinstlogo.png"
           alt="Instafit Core"
-          className="w-50 h-20 shadow-md"
+          className="h-16 md:h-20 lg:h-24 w-auto shadow-md"
         />
+
       </div>
 
-      <h2 className="text-2xl font-bold tracking-wide mb-6 text-center text-white">
+      <h2 className="text-2xl font-bold tracking-wide mb-3 text-center text-white">
         Admin Panel
       </h2>
 

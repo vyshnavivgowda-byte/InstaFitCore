@@ -32,11 +32,13 @@ export default function AdminLogin() {
       <div className="bg-white shadow-xl rounded-3xl p-10 w-full max-w-md flex flex-col items-center">
 
         {/* Logo */}
+        {/* Logo */}
         <img
-          src="/insta.png"
+          src="/instlogo.png"
           alt="Instafit Core"
-          className="w-40 object-contain mb-6"
+          className="w-56 md:w-64 object-contain mb-8"
         />
+
 
         <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 leading-tight">          Admin Login
         </h2>

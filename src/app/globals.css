@@ -13,10 +13,9 @@ body {
 }
 
 .input {
-  @apply w-full border border-gray-300 rounded-lg px-4 py-2
-  focus:outline-none focus:ring-2 focus:ring-[#8ed26b];
+  @apply w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-instafitcore-green;
+}
+.textarea {
+  @apply w-full p-3 border border-gray-300 rounded-xl mb-4 min-h-[90px];
 }
 
-.form-heading {
-  @apply text-lg font-semibold text-gray-800 mb-4 border-b pb-2;
-}

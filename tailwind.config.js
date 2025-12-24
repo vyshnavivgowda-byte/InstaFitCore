@@ -6,8 +6,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'primary-green': '#8ED26B', // Use static color name
-        'hover-green': '#72b852',   // Use static color name
+        'instafitcore-green': '#8ED26B',       // main color
+        'instafitcore-green-hover': '#76c55d', // hover color
       },
     },
   },

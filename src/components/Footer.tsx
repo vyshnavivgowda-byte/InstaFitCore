@@ -3,8 +3,7 @@
 import React from 'react';
 import { Mail, Phone } from "lucide-react";
 
-const BRAND_ACCENT = "#8ed26b";
-const LOGO_PATH = "/footerlogo.png";
+const LOGO_PATH = "/footerinstlogo.png";
 
 export default function Footer() {
   return (
@@ -16,13 +15,18 @@ export default function Footer() {
 
           {/* --- 1. COMPANY INFO --- */}
           <div>
-            <div className="mb-4">
-              <img src={LOGO_PATH} alt="InstaFitCore Logo" className="h-12 md:h-16 lg:h-20 w-auto" />
+            <div className="mb-6">
+              <img
+                src={LOGO_PATH}
+                alt="InstaFitCore Logo"
+                className="h-16 md:h-20 lg:h-28 w-auto"
+              />
             </div>
+
             <p className="text-gray-400 text-sm leading-6">
               "Professional installation, dismantling, and repair" services delivered by certified & trained technicians.
             </p>
-            <p className="mt-3 text-sm font-medium" style={{ color: BRAND_ACCENT }}>
+            <p className="mt-3 text-sm font-medium text-instafitcore-green">
               Making furniture installation simple, fast, and reliable.
             </p>
           </div>
@@ -31,10 +35,10 @@ export default function Footer() {
           <div>
             <h5 className="text-white text-xl font-bold mb-5 border-b border-gray-700 pb-2">Navigation</h5>
             <ul className="space-y-3 text-gray-400 text-sm">
-              <li><a href="/site/services" className="hover:text-white transition-colors hover:pl-2 block">» Services</a></li>
-              <li><a href="/site/career" className="hover:text-white transition-colors hover:pl-2 block">» Career</a></li>
-              <li><a href="/site/about" className="hover:text-white transition-colors hover:pl-2 block">» About Us</a></li>
-              <li><a href="/site/contact" className="hover:text-white transition-colors hover:pl-2 block">» Contact Us</a></li>
+              <li><a href="/site/services" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Services</a></li>
+              <li><a href="/site/career" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Career</a></li>
+              <li><a href="/site/about" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» About Us</a></li>
+              <li><a href="/site/contact" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Contact Us</a></li>
             </ul>
           </div>
 
@@ -43,11 +47,13 @@ export default function Footer() {
             <h5 className="text-white text-xl font-bold mb-5 border-b border-gray-700 pb-2">Services</h5>
             <ul className="space-y-3 text-gray-400 text-sm">
               <li className="text-gray-200 font-medium">» Furniture</li>
-              <li className="ml-4"><a href="/site/services?typeId=1" className="hover:text-white transition-colors hover:pl-2 block">» Installation</a></li>
-              <li className="ml-4"><a href="/site/services?typeId=2" className="hover:text-white transition-colors hover:pl-2 block">» Dismantling</a></li>
-              <li className="ml-4 mb-2"><a href="/site/services?typeId=3" className="hover:text-white transition-colors hover:pl-2 block">» Repair</a></li>
-              <li><a href="/site/services?category=modular-furniture" className="hover:text-white transition-colors hover:pl-2 block">» Modular Furniture</a></li>
-              <li><a href="/site/book?type=b2b" className="hover:text-white transition-colors hover:pl-2 block font-medium">» B2B Requirement</a></li>
+              <li className="ml-4"><a href="/site/services?typeId=1" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Installation</a></li>
+              <li className="ml-4"><a href="/site/services?typeId=2" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Dismantling</a></li>
+              <li className="ml-4 mb-2"><a href="/site/services?typeId=3" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Repair</a></li>
+              <li><a href="/site/services?category=modular-furniture" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Modular Furniture</a></li>
+              <li><a href="/site/request/customized-modular-kitchen" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Modular Kitchen</a></li>
+              <li><a href="/site/request/packer-and-movers" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Packers and Movers</a></li>
+              <li><a href="/site/book?type=b2b" className="hover:text-instafitcore-green transition-colors hover:pl-2 block font-medium">» B2B Services</a></li>
             </ul>
           </div>
 
@@ -56,15 +62,22 @@ export default function Footer() {
             <h5 className="text-white text-xl font-bold mb-5 border-b border-gray-700 pb-2">Get in Touch</h5>
             <div className="space-y-4 text-sm">
               <p className="flex items-start gap-3">
-                <Mail className="w-5 h-5 shrink-0" style={{ color: BRAND_ACCENT }} />
-                <span><span className="font-semibold text-gray-100">Support:</span><br /><a href="mailto:Customersupport@instafitcore.com">Customersupport@instafitcore.com</a></span>
+                <Mail className="w-5 h-5 shrink-0 text-instafitcore-green" />
+                <span>
+                  <span className="font-semibold text-gray-100">Support:</span><br />
+                  <a href="mailto:Customersupport@instafitcore.com" className="hover:text-white">Customersupport@instafitcore.com</a>
+                </span>
               </p>
               <p className="flex items-start gap-3">
-                <Phone className="w-5 h-5 shrink-0" style={{ color: BRAND_ACCENT }} />
-                <span><span className="font-semibold text-gray-100">Toll Free:</span><br />+91 7411443233</span>
+                <Phone className="w-5 h-5 shrink-0 text-instafitcore-green" />
+                <span>
+                  <span className="font-semibold text-gray-100">Toll Free:</span><br />
+                  +91 7411443233
+                </span>
               </p>
             </div>
           </div>
+
         </div>
 
         {/* --- CENTERED NEED HELP BOX --- */}
@@ -73,7 +86,7 @@ export default function Footer() {
 
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-gray-300">
-              <Mail className="w-4 h-4" style={{ color: BRAND_ACCENT }} />
+              <Mail className="w-4 h-4 text-instafitcore-green" />
               <a href="mailto:support@instafitcore.com" className="hover:text-white transition-colors text-sm">support@instafitcore.com</a>
             </div>
           </div>
@@ -95,7 +108,12 @@ export default function Footer() {
           <br />
           © {new Date().getFullYear()} InstaFitCore Solutions Private Limited. All rights reserved.
         </p>
-        <p className="text-center text-xs text-gray-500 leading-relaxed px-6">Note: Designed and Developed by Rakvih</p>
+        <p className="text-center text-xs text-gray-500 leading-relaxed px-6">
+          Note: Designed and Developed by{' '}
+          <a href="https://rakvih.in" target="_blank" rel="noopener noreferrer" className="text-instafitcore-green hover:underline font-semibold">
+            Rakvih
+          </a>
+        </p>
       </div>
     </footer>
   );

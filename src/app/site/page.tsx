@@ -90,9 +90,9 @@ const SLIDES_DATA: Slide[] = [
   },
   {
     id: 3,
-    img: "/pic3.jpg",
-    title: "Get in Touch",
-    subtitle: "Contact Us for Any Queries or Bookings",
+    img: "/ban.jpeg",
+    title: ".",
+    subtitle: ".",
     cta: { text: "Contact Us", href: "/site/contact" },
   },
 ];
@@ -120,12 +120,12 @@ const WHY_CHOOSE_US_DATA: WhyChooseUsItem[] = [
       "100% satisfaction guarantee with transparent pricing and excellent customer support.",
   },
   {
-  iconSrc: "/end.png",
-  alt: "End-to-End Service",
-  title: "End-to-End Service",
-  description:
-    "From booking to completion, we manage everything so you don’t have to worry.",
-},
+    iconSrc: "/end.png",
+    alt: "End-to-End Service",
+    title: "End-to-End Service",
+    description:
+      "From booking to completion, we manage everything so you don’t have to worry.",
+  },
 ];
 
 const FAQ_DATA: FAQItem[] = [
@@ -146,9 +146,6 @@ const FAQ_DATA: FAQItem[] = [
     answer: "Yes, we ensure service quality and customer satisfaction. Any service-related concerns can be raised with our support team for quick resolution.",
   },
 ];
-
-// Brand color constant for consistent styling
-const BRAND_COLOR = "#8ed26b";
 
 // ====================================================================
 // 3. SUBCATEGORY CARD SUB-COMPONENT (Inline)
@@ -217,16 +214,9 @@ const WhyChooseUsCard: React.FC<WhyChooseUsItem> = ({
   title,
   description,
 }) => (
-  <div
-    className="bg-white rounded-3xl shadow-xl p-8 text-center transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl border-t-4 border-transparent hover:border-t-4"
-    style={{ borderTopColor: BRAND_COLOR }}
-  >
-    <div
-      className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 overflow-hidden"
-      style={{
-        background: `linear-gradient(to bottom right, ${BRAND_COLOR}20, ${BRAND_COLOR}50)`,
-      }}
-    >
+  <div className="bg-white rounded-3xl shadow-xl p-8 text-center transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl border-t-4 border-instafitcore-green">
+
+    <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 overflow-hidden bg-gradient-to-br from-instafitcore-green/20 to-instafitcore-green/50">
       <Image
         src={iconSrc}
         alt={alt}
@@ -235,6 +225,7 @@ const WhyChooseUsCard: React.FC<WhyChooseUsItem> = ({
         className="object-contain filter drop-shadow-md"
       />
     </div>
+
     <h3 className="text-xl font-semibold mb-3 text-gray-800">{title}</h3>
     <p className="text-gray-600 text-sm">{description}</p>
   </div>
@@ -307,11 +298,11 @@ const HeroCarousel: React.FC<{ slides: Slide[] }> = ({ slides }) => {
             </p>
             <Link
               href={slide.cta.href}
-              className="inline-block px-8 py-3 sm:px-10 sm:py-4 text-white font-semibold text-sm sm:text-base rounded-full shadow-xl transition-all duration-300 hover:scale-[1.03]"
-              style={{ backgroundColor: BRAND_COLOR }}
+              className="inline-block px-8 py-3 sm:px-10 sm:py-4 text-white font-semibold text-sm sm:text-base rounded-full shadow-xl transition-all duration-300 hover:scale-[1.03] bg-instafitcore-green hover:bg-instafitcore-green-hover"
             >
               {slide.cta.text}
             </Link>
+
           </div>
         </div>
       ))}
@@ -322,12 +313,14 @@ const HeroCarousel: React.FC<{ slides: Slide[] }> = ({ slides }) => {
           <button
             key={i}
             onClick={() => goToSlide(i)}
-            className={`h-3 rounded-full transition-all ${currentSlide === i ? "w-8 sm:w-10 shadow-xl" : "w-3 opacity-70"
+            className={`h-3 rounded-full transition-all ${currentSlide === i
+                ? "w-8 sm:w-10 shadow-xl bg-instafitcore-green"
+                : "w-3 opacity-70 bg-instafitcore-green/50"
               }`}
-            style={{ backgroundColor: BRAND_COLOR }}
             aria-label={`Go to slide ${i + 1}`}
             aria-current={currentSlide === i ? 'true' : 'false'}
           />
+
         ))}
       </div>
 
@@ -544,8 +537,8 @@ const TestimonialSection: React.FC = () => {
         .from("testimonials")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(3); 
-      
+        .limit(3);
+
       if (error) {
         console.error("Testimonial fetch error:", error.message);
       } else {
@@ -561,7 +554,7 @@ const TestimonialSection: React.FC = () => {
     // Simple loading state
     return <div className="text-center py-12 text-gray-500">Loading testimonials...</div>
   }
-  
+
   // Don't render section if no testimonials
   if (testimonials.length === 0) {
     return null; // Don't render section if no data
@@ -572,7 +565,7 @@ const TestimonialSection: React.FC = () => {
     <section className="py-12 sm:py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-6">
         <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800 mb-12 sm:mb-16">
-          What Our Customers Say 
+          What Our Customers Say
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10">
@@ -643,7 +636,7 @@ export default function HomePage() {
             Why Choose Our Services?
           </h2>
 
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
             {WHY_CHOOSE_US_DATA.map((item, index) => (
               <WhyChooseUsCard key={index} {...item} />
             ))}
@@ -674,11 +667,11 @@ export default function HomePage() {
           <div className="text-center mt-12">
             <Link
               href="/site/services"
-              className="inline-block px-8 py-3 text-white font-bold rounded-full shadow-lg transition-all duration-300 hover:scale-105"
-              style={{ backgroundColor: BRAND_COLOR }}
+              className="inline-block px-8 py-3 text-white font-bold rounded-full shadow-lg transition-all duration-300 hover:scale-105 bg-instafitcore-green hover:bg-instafitcore-green-hover"
             >
               View All Services
             </Link>
+
           </div>
         </div>
       </section>
@@ -709,11 +702,11 @@ export default function HomePage() {
               </p>
               <Link
                 href="/site/services"
-                className="inline-block px-8 py-3 text-white font-bold rounded-full shadow-lg hover:scale-105 transition-all duration-300"
-                style={{ backgroundColor: BRAND_COLOR }}
+                className="inline-block px-8 py-3 text-white font-bold rounded-full shadow-lg hover:scale-105 transition-all duration-300 bg-instafitcore-green hover:bg-instafitcore-green-hover"
               >
                 Shop Now
               </Link>
+
             </div>
           </div>
         </div>
@@ -794,46 +787,65 @@ export default function HomePage() {
 
       <hr className="max-w-6xl mx-auto border-gray-200" />
 
-      {/* --- PARTNERSHIP SECTION --- */}
-      <section className="py-12 sm:py-20 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-5xl mx-auto px-6 text-center">
+  {/* --- PARTNERSHIP SECTION --- */}
+<section className="py-12 sm:py-20 bg-gradient-to-b from-gray-50 to-white">
+  <div className="max-w-5xl mx-auto px-6 text-center">
 
-          {/* Heading */}
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
-            Our Trusted Partner
-          </h2>
-          <p className="text-gray-600 text-base sm:text-lg mb-8 sm:mb-12 max-w-2xl mx-auto">
-            We proudly collaborate with industry-leading companies to bring you reliable and high-quality services.
-          </p>
+    {/* Heading */}
+    <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
+      Our Trusted Partners
+    </h2>
+    <p className="text-gray-600 text-base sm:text-lg mb-8 sm:mb-12 max-w-2xl mx-auto">
+      We proudly collaborate with industry-leading companies to bring you reliable and high-quality services.
+    </p>
 
-          {/* Partner Card */}
-          <div className="flex justify-center">
-            <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 max-w-xs sm:max-w-sm w-full">
+    {/* Partner Cards Grid */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center">
 
-              {/* Logo */}
-              <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto rounded-xl bg-gray-50 flex items-center justify-center border border-gray-200 shadow-inner overflow-hidden">
-                <Image
-                  src="/simplylogistics-logo.jpeg" // Replace with actual logo
-                  alt="Simply Logistics Logo"
-                  width={160}
-                  height={160}
-                  className="object-contain p-4"
-                />
-              </div>
-
-              {/* Text */}
-              <div className="mt-6">
-                <h3 className="text-xl sm:text-2xl font-bold text-gray-800">SimplyLogistics</h3>
-                <p className="text-gray-500 mt-1">Logistics and Supply Chain</p>
-                {/* Badge */}
-                <span className="inline-block mt-4 bg-green-100 text-green-700 text-sm font-semibold px-4 py-1.5 rounded-full border border-green-200">
-                  Verified Partner
-                </span>
-              </div>
-            </div>
-          </div>
+      {/* SimplyLogistics */}
+      <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 max-w-xs sm:max-w-sm w-full">
+        <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto rounded-xl bg-gray-50 flex items-center justify-center border border-gray-200 shadow-inner overflow-hidden">
+          <Image
+            src="/simplylogistics-logo.jpeg"
+            alt="Simply Logistics Logo"
+            width={160}
+            height={160}
+            className="object-contain p-4"
+          />
         </div>
-      </section>
+        <div className="mt-6">
+          <h3 className="text-xl sm:text-2xl font-bold text-gray-800">SimplyLogistics</h3>
+          <p className="text-gray-500 mt-1">Logistics and Supply Chain</p>
+          <span className="inline-block mt-4 bg-instafitcore-green/20 text-instafitcore-green text-sm font-semibold px-4 py-1.5 rounded-full border border-instafitcore-green">
+            Verified Partner
+          </span>
+        </div>
+      </div>
+
+      {/* Rakvih */}
+      <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 max-w-xs sm:max-w-sm w-full">
+        <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto rounded-xl bg-gray-50 flex items-center justify-center border border-gray-200 shadow-inner overflow-hidden">
+          <Image
+            src="/rakvih.jpeg"
+            alt="Rakvih Logo"
+            width={160}
+            height={160}
+            className="object-contain p-4"
+          />
+        </div>
+        <div className="mt-6">
+          <h3 className="text-xl sm:text-2xl font-bold text-gray-800">Rakvih</h3>
+          <p className="text-gray-500 mt-1">Digital and IT Solutions</p>
+          <span className="inline-block mt-4 bg-instafitcore-green/20 text-instafitcore-green text-sm font-semibold px-4 py-1.5 rounded-full border border-instafitcore-green">
+            Verified Partner
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 
       {/* --- NEW: WHY INSTAFITCORE SECTION --- */}
       <WhyInstaFitCoreSection />

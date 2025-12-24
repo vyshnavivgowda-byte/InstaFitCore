@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase-client";
 import AuthModal from "@/components/AuthModal";
 import useUser from "@/hooks/useUser";
 import { PackageCheck } from "lucide-react";
+import { MapPin } from "lucide-react";
 import {
   User as UserIcon,
   CircleX,
@@ -58,36 +59,71 @@ export default function FullNavbar() {
       name: "Furniture Service",
       image_url: "/furniture-service.jpeg",
       link: "/site/services?typeId=1",
+      subServices: [
+        "Furniture Installation",
+        "Furniture Dismantling",
+        "Furniture Repair",
+        "Re-installation",
+        "Furniture Relocation Support",
+      ],
     },
     {
       id: "custom-furniture",
-      name: "Customized Modular Furniture",
+      name: "Modular Furniture",
       image_url: "/custom-furniture.jpg",
       link: "/site/request/customized-modular-furniture",
+      subServices: [
+        "Modular Bed",
+        "Modular Wardrobe",
+        "Wall Unit / TV Unit",
+        "Sofa – Customized Size & Fabric Options",
+        "Study Table & Storage",
+      ],
     },
     {
       id: "custom-kitchen",
-      name: "Customized Modular Kitchen",
+      name: "Modular Kitchen",
       image_url: "/custom-kitchen.jpg",
       link: "/site/request/customized-modular-kitchen",
+      subServices: [
+        "Kitchen Design & Site Measurement",
+        "Modular Kitchen Manufacturing",
+        "Modular Kitchen Installation",
+        "Cabinet & Accessory Installation",
+        "Kitchen Refurbishment / Modification",
+      ],
     },
     {
       id: "packer-movers",
       name: "Packer and Movers",
       image_url: "/packer.jpg",
       link: "/site/request/packer-and-movers",
+      subServices: [
+        "Furniture Dismantling",
+        "Packing & Labelling",
+        "Transportation",
+        "Unpacking & Placement",
+        "Re-installation at New Location",
+      ],
     },
     {
       id: "b2b-request",
-      name: "B2B Service",
+      name: "B2B Services",
       image_url: "/b2.jpg",
       link: "/site/request/b2b-service-requirement",
+      subServices: [
+        "Last-Mile Furniture Delivery",
+        "Delivery-cum-Installation",
+        "Reverse Pickup",
+        "Store Display Furniture Installation",
+      ],
     },
     {
       id: "ask-expert",
       name: "Ask the Expert",
-      image_url: "/exp.jpg", // add this image
+      image_url: "/exp.jpg",
       link: "/site/contact",
+      subServices: [],
     },
   ];
 
@@ -192,17 +228,41 @@ export default function FullNavbar() {
 
   return (
     <>
-      <header className={`bg-white border-b border-gray-200 sticky top-0 z-50 transition-all ${isScrolled ? "shadow-md" : ""}`}>
-        <div className="flex max-w-7xl mx-auto px-4 py-3 items-center gap-4 md:gap-6">
-          <Link href="/site" className="flex items-center gap-2 md:gap-3 shrink-0">
-            <div className="w-10 h-10 md:w-14 md:h-14 relative shrink-0">
-              <Image src="/logoInstaFit.jpg" alt="Logo" width={66} height={66} className="w-full h-full object-contain" />
+      <header className={`bg-white border-b border-gray-200 sticky top-0 z-50 transition-all duration-300 ${isScrolled ? "shadow-lg" : ""}`}>
+        <div className="flex max-w-7xl mx-auto px-4 py-4 md:py-5 items-center gap-4 md:gap-6">
+          <Link href="/site" className="flex items-center gap-1 shrink-0">
+            {/* Logo Icon */}
+            <div className="w-12 h-12 md:w-14 md:h-14 relative flex-shrink-0">
+              <Image
+                src="/logoicon.png"
+                alt="Instafitcore Logo"
+                width={64}
+                height={64}
+                priority
+                className="w-full h-full object-contain"
+              />
             </div>
-            <div className="leading-tight hidden sm:block">
-              <div className="text-lg md:text-xl font-bold text-[#8ed26b]">INSTAFITCORE</div>
-              <div className="text-xs text-black">One Stop Solutions</div>
+
+            {/* Brand Text + Location */}
+            <div className="leading-tight hidden sm:block text-right">
+              {/* Brand Name */}
+              <h1 className="text-lg md:text-xl font-extrabold tracking-wide text-[#90ca2e]">
+                INSTAFITCORE
+              </h1>
+
+              {/* Location / Tagline */}
+              <div className="flex flex-col gap-0.5 text-[11px] md:text-xs font-medium text-[#8ed26b]/80 items-end">
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5" />
+                  <p className="text-[11px] md:text-xs text-gray-500 font-bold tracking-wide">
+                    One Stop Solutions
+                  </p>
+                </div>
+              </div>
             </div>
+
           </Link>
+
 
           {/* SEARCH BOX - Made bigger on mobile */}
           <div className="flex-1 max-w-md md:max-w-lg mx-2 md:mx-4 relative" ref={searchRef}>
@@ -334,50 +394,67 @@ export default function FullNavbar() {
 
       {/* CATEGORY BAR (Home only) */}
       {pathname === "/site" && (
-        <div className={`sticky top-[72px] z-40 bg-white border-b border-gray-100 transition-all duration-300 ease-in-out overflow-hidden ${categoryShrunk
-          ? "py-2 shadow-sm mt-0"     // Compact padding when scrolled
-          : "py-4 md:py-6 mt-1"               // Moderate padding and small gap from header
-          }`}>
+        <div
+          className={`sticky top-[72px] z-50 bg-white border-b border-gray-100 shadow-sm transition-all duration-300 overflow-visible ${categoryShrunk ? "py-6" : "py-4"
+            }`}
+        >
           <div className="max-w-7xl mx-auto px-4 md:px-6">
-            <div
-              className={`flex w-full items-center gap-2 md:gap-4 overflow-x-auto scrollbar-hide transition-all duration-300
-    ${categoryShrunk ? "justify-start" : "justify-between"}
-  `}
-            >
+            <div className="flex flex-wrap justify-center gap-16 md:gap-20 lg:gap-24 transition-all duration-300">
               {staticCategories.map((item) => (
-                <Link
-                  key={item.id}
-                  href={item.link}
-                  className="flex flex-col items-center group transition-all duration-300 flex-shrink-0"
-                >
-                  {/* Image Container */}
-                                <div
-                    className={`rounded-full border border-gray-100 overflow-hidden flex items-center justify-center transition-all duration-500 ease-in-out
-                ${categoryShrunk
-                        ? "w-0 h-0 opacity-0 mb-0 scale-0"
-                        : "w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 opacity-100 mb-2 scale-100 group-hover:border-[#8ed26b] shadow-sm"}
-              `}
+                <div key={item.id} className="relative group flex flex-col items-center">
+                  {/* Category Link */}
+                  <Link
+                    href={item.link}
+                    className="flex flex-col items-center transition-all duration-300"
                   >
-                    <Image
-                      src={item.image_url}
-                      alt={item.name}
-                      width={80}
-                      height={80}
-                      className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                    />
-                  </div>
+                    {/* Image Container */}
+                    <div
+                      className={`rounded-full overflow-hidden border border-gray-100 flex items-center justify-center transition-all duration-300 ease-in-out shadow-sm
+                  ${categoryShrunk
+                          ? "w-0 h-0 opacity-0 mb-1 scale-0"
+                          : "w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 mb-2 group-hover:scale-105 group-hover:border-[#8ed26b]"
+                        }`}
+                    >
+                      <Image
+                        src={item.image_url}
+                        alt={item.name}
+                        width={80}
+                        height={80}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
 
-                  {/* Optimized Font Label */}
-                  <p
-                    className={`font-semibold text-gray-800 text-center transition-all duration-300 whitespace-nowrap leading-tight group-hover:text-[#8ed26b]
-                ${categoryShrunk
-                        ? "text-xs md:text-sm tracking-tight"
-                        : "text-[11px] md:text-sm"}
-              `}
-                  >
-                    {item.name}
-                  </p>
-                </Link>
+                    {/* Text Label */}
+                    <p
+                      className={`text-center text-[11px] md:text-sm font-semibold text-gray-800 leading-snug break-words transition-all duration-300 group-hover:text-[#8ed26b] ${categoryShrunk ? "mt-4" : "mt-2"
+                        }`}
+                    >
+                      {item.name}
+                    </p>
+                  </Link>
+
+                  {/* Hover Dropdown for Sub Services */}
+                  {item.subServices && item.subServices.length > 0 && (
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-64 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto scale-95 group-hover:scale-100 transform transition-all duration-300 z-50">
+                      {/* The white box container */}
+                      <div className="bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden">
+                        <div className="px-4 py-3">
+                          <ul className="text-gray-700 text-sm space-y-2">
+                            {item.subServices.map((sub, idx) => (
+                              <li
+                                key={idx}
+                                className="hover:text-[#8ed26b] cursor-pointer transition-colors flex items-start gap-2"
+                              >
+                                <span className="text-[#8ed26b]">•</span>
+                                <span>{sub}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>

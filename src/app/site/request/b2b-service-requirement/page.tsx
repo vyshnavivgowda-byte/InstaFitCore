@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useToast } from "@/components/Toast";
 import { FaTruck, FaWrench, FaArrowLeft, FaCouch } from "react-icons/fa";
+type AddressField = [string, string, boolean];
 
 export default function B2BServiceRequirementPage() {
   const [loading, setLoading] = useState(false);
@@ -68,7 +69,7 @@ export default function B2BServiceRequirementPage() {
     } else {
       toast({
         title: "Request Submitted",
-        description: "B2B service requirement submitted successfully",
+        description: "B2B services requirement submitted successfully",
         variant: "success",
       });
       setForm(initialForm);
@@ -81,10 +82,10 @@ export default function B2BServiceRequirementPage() {
         {/* Header Section */}
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
-            B2B Service <span className="text-[#8ed26b]">Requirement</span> Request
+            B2B Services <span className="text-[#8ed26b]">Requirement</span> Request
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Tailored solutions for Brands, Retailers, Corporates & Enterprises. 
+            Tailored solutions for Brands, Retailers, Corporates & Enterprises.
             Let us handle your logistics and service needs with precision and care.
           </p>
         </div>
@@ -180,7 +181,7 @@ export default function B2BServiceRequirementPage() {
                 Address Details
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {[
+                {([
                   ["flat_no", "Flat / House / Plot No", true],
                   ["floor", "Floor", true],
                   ["building_name", "Building / Apartment Name", true],
@@ -190,7 +191,7 @@ export default function B2BServiceRequirementPage() {
                   ["city", "City / Town", true],
                   ["state", "State", true],
                   ["pincode", "Pincode", true],
-                ].map(([name, label, required]) => (
+                ] as AddressField[]).map(([name, label, required]) => (
                   <Field key={name} label={label} required={required}>
                     <input
                       name={name}
@@ -202,6 +203,7 @@ export default function B2BServiceRequirementPage() {
                     />
                   </Field>
                 ))}
+
               </div>
             </div>
 
@@ -298,7 +300,7 @@ export default function B2BServiceRequirementPage() {
                   Submitting...
                 </div>
               ) : (
-                "Submit B2B Requirement"
+                "Submit B2B Services "
               )}
             </button>
           </form>

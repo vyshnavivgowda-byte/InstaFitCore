@@ -182,56 +182,56 @@ export default function AuthModal({
 
   // --- verify OTP ---
   const verifyOtp = async () => {
-  clearAlerts();
-  const code = fullOtpString();
-  if (code.length !== OTP_LEN) {
-    setError("Enter the 6-digit code");
-    return;
-  }
-  if (!sentTo) {
-    setError("No email to verify. Please request OTP again.");
-    return;
-  }
-
-  setIsVerifying(true);
-  try {
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      email: sentTo,
-      token: code,
-      type: "email",
-    });
-
-    if (verifyError) {
-      toast({ title: verifyError.message || "OTP verification failed", variant: "destructive" });
-    } else {
-      toast({ title: "Authenticated successfully", variant: "success" });
-      
-      // 1. Trigger the callback if provided
-      if (onAuthSuccess) onAuthSuccess();
-      
-      // 2. Redirect to the home page
-      router.push("/site"); 
-      
-      // 3. Close the modal after a slight delay
-      setTimeout(() => {
-        closeModal();
-        router.refresh(); // Refresh to update the navbar/user state globally
-      }, 500);
+    clearAlerts();
+    const code = fullOtpString();
+    if (code.length !== OTP_LEN) {
+      setError("Enter the 6-digit code");
+      return;
     }
-  } catch (err: any) {
-    setError(err?.message || "Verification error");
-  } finally {
-    setIsVerifying(false);
-  }
-};
+    if (!sentTo) {
+      setError("No email to verify. Please request OTP again.");
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email: sentTo,
+        token: code,
+        type: "email",
+      });
+
+      if (verifyError) {
+        toast({ title: verifyError.message || "OTP verification failed", variant: "destructive" });
+      } else {
+        toast({ title: "Authenticated successfully", variant: "success" });
+
+        // 1. Trigger the callback if provided
+        if (onAuthSuccess) onAuthSuccess();
+
+        // 2. Redirect to the home page
+        router.push("/site");
+
+        // 3. Close the modal after a slight delay
+        setTimeout(() => {
+          closeModal();
+          router.refresh(); // Refresh to update the navbar/user state globally
+        }, 500);
+      }
+    } catch (err: any) {
+      setError(err?.message || "Verification error");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   const formatTime = (seconds: number) => {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  const mm = m.toString().padStart(2, "0");
-  const ss = s.toString().padStart(2, "0");
-  return `${mm}:${ss}`;
-};
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    const mm = m.toString().padStart(2, "0");
+    const ss = s.toString().padStart(2, "0");
+    return `${mm}:${ss}`;
+  };
 
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -263,16 +263,17 @@ export default function AuthModal({
       <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300">
         <div className="p-6 sm:p-8">
           <div className="flex flex-col items-center mb-6 relative">
-            <div className="w-20 h-20 mb-2">
+            <div className="w-40 h-40 md:w-48 md:h-20 mb-4">
               <Image
-                src="/logoInstaFitCore.jpg"
+                src="/instlogo.png"
                 alt="Logo"
-                width={90}
-                height={90}
+                width={240}
+                height={240}
                 className="object-contain rounded-full"
                 priority
               />
             </div>
+
             <h2 className="text-2xl font-extrabold text-gray-900 mb-1">
               {mode === "login"
                 ? "Login with OTP"
@@ -446,7 +447,7 @@ export default function AuthModal({
                       className="text-sm font-semibold hover:underline disabled:opacity-50"
                       style={{ color: BRAND_COLOR }}
                     >
-{resendTimer > 0 ? `Resend in ${formatTime(resendTimer)}` : "Resend code"}
+                      {resendTimer > 0 ? `Resend in ${formatTime(resendTimer)}` : "Resend code"}
                     </button>
                   </div>
                 </div>

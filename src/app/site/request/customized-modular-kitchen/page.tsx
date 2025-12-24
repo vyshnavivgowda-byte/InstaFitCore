@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useToast } from "@/components/Toast";
 import { FaUtensils, FaHome, FaBuilding, FaShapes } from "react-icons/fa";
+type AddressField = [string, string, boolean];
 
 export default function CustomizedModularKitchenPage() {
   const [loading, setLoading] = useState(false);
@@ -190,28 +191,29 @@ export default function CustomizedModularKitchenPage() {
                 Address Details
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {[
-                  ["flat_no", "Flat / House / Plot No", true],
-                  ["floor", "Floor", true],
-                  ["building_name", "Building / Apartment Name", true],
-                  ["street", "Street / Locality", true],
-                  ["area", "Area / Zone", true],
-                  ["landmark", "Landmark (Optional)", false],
-                  ["city", "City / Town", true],
-                  ["state", "State", true],
-                  ["pincode", "Pincode", true],
-                ].map(([name, label, required]) => (
-                  <Field key={name} label={label} required={required}>
-                    <input
-                      name={name}
-                      required={required}
-                      className={input}
-                      value={form[name]}
-                      onChange={handleChange}
-                      placeholder={`Enter ${label.toLowerCase()}`}
-                    />
-                  </Field>
-                ))}
+                {([
+  ["flat_no", "Flat / House / Plot No", true],
+  ["floor", "Floor", true],
+  ["building_name", "Building / Apartment Name", true],
+  ["street", "Street / Locality", true],
+  ["area", "Area / Zone", true],
+  ["landmark", "Landmark (Optional)", false],
+  ["city", "City / Town", true],
+  ["state", "State", true],
+  ["pincode", "Pincode", true],
+] as AddressField[]).map(([name, label, required]) => (
+  <Field key={name} label={label} required={required}>
+    <input
+      name={name}
+      required={required}
+      value={form[name]}
+      onChange={handleChange}
+      className={input}
+      placeholder={`Enter ${label.toLowerCase()}`}
+    />
+  </Field>
+))}
+
               </div>
             </div>
 

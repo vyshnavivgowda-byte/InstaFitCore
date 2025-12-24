@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useToast } from "@/components/Toast";
 import { FaHome, FaBuilding, FaTruck, FaRoute } from "react-icons/fa";
+type AddressField = [string, string, boolean];
 
 export default function PackerAndMoversPage() {
   const [loading, setLoading] = useState(false);
@@ -74,7 +75,7 @@ export default function PackerAndMoversPage() {
             Packers & <span className="text-[#8ed26b]">Movers</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Hassle-free moving services tailored to your needs. 
+            Hassle-free moving services tailored to your needs.
             Submit your moving details and get a quote from our experts.
           </p>
         </div>
@@ -183,7 +184,7 @@ export default function PackerAndMoversPage() {
                 Address Details
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {[
+                {([
                   ["flat_no", "Flat / House / Plot No", true],
                   ["floor", "Floor", true],
                   ["building_name", "Building / Apartment Name", true],
@@ -193,18 +194,19 @@ export default function PackerAndMoversPage() {
                   ["city", "City / Town", true],
                   ["state", "State", true],
                   ["pincode", "Pincode", true],
-                ].map(([name, label, required]) => (
+                ] as AddressField[]).map(([name, label, required]) => (
                   <Field key={name} label={label} required={required}>
                     <input
                       name={name}
                       required={required}
-                      className={input}
                       value={form[name]}
                       onChange={handleChange}
+                      className={input}
                       placeholder={`Enter ${label.toLowerCase()}`}
                     />
                   </Field>
                 ))}
+
               </div>
             </div>
 

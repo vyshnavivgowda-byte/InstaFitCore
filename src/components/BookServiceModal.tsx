@@ -11,19 +11,7 @@ const PRIMARY_COLOR = "#8ed26b";
 const ACCENT_COLOR = "#10b981";
 const LIGHT_BG = "#f5f7fa";
 const BORDER_COLOR = "#e6f6dc";
-// --- Allowed Service Pincodes ---
-const ALLOWED_PINCODES = [
-  "560091","560037","560016","560065","560024","560094","560092","560001","560051",
-  "560025","560030","560002","560060","560059","560034","560018","560068","560099",
-  "560062","560070","560098","560088","560054","560022","560010","560079","560055",
-  "560072","560003","560004","560083","560089","560066","560075","560017","560047",
-  "560080","560084","560026","560074","560050","560100","560076","560029","560041",
-  "560013","560009","560096","560086","560008","560032","560067","560049","560090",
-  "560007","560036","560300","560045","560043","560005","560053","560102","560027",
-  "560078","560011","560015","560012","560021","560056","560071","560063","560113",
-  "560035","560095","560111","560082","560081","560097","560040","560020","560048",
-  "560103","560093","560038","560033","560042","560085","560061","560057","560023"
-];
+
 // --- Type Definitions ---
 type ServiceItem = {
   id: number;
@@ -138,13 +126,14 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
   const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'success' | 'error'>('idle');
   // REF: Errors state updated to handle nested address errors
   const [errors, setErrors] = useState<FormErrors>({});
+  const [allowedPincodes, setAllowedPincodes] = useState<string[]>([]);
 
   const router = useRouter();
   const { toast } = useToast();
 
   const tomorrow = new Date();
-tomorrow.setDate(tomorrow.getDate() + 1);
-const minDate = tomorrow.toISOString().split("T")[0];
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().split("T")[0];
 
   const [timings, setTimings] = useState<string[]>([]);
 
@@ -159,53 +148,80 @@ const minDate = tomorrow.toISOString().split("T")[0];
       setSubmissionStatus('idle');
     }
   }, [isOpen]);
+  useEffect(() => {
+    if (isOpen) {
+      const fetchPincodes = async () => {
+        try {
+          const { data, error } = await supabase
+            .from("service_pincodes") // Replace with your admin table name
+            .select("pincode");      // Column name that stores pincodes
 
-useEffect(() => {
-  if (service && service.id) {
-    const fetchTimings = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("services")
-          .select("preferred_timings")
-          .eq("id", service.id)
-          .single();
+          if (error) throw error;
 
-        if (error) throw error;
-        if (data?.preferred_timings) setTimings(data.preferred_timings);
-      } catch (err) {
-        console.error("Failed to fetch timings:", err);
-        toast({
-          title: "Error",
-          description: "Could not load available timings.",
-          variant: "destructive",
-        });
-      }
-    };
+          if (data) {
+            const pincodes = data.map((item: any) => item.pincode);
+            setAllowedPincodes(pincodes);
+          }
+        } catch (err) {
+          console.error("Failed to fetch pincodes:", err);
+          toast({
+            title: "Error",
+            description: "Could not load allowed pincodes.",
+            variant: "destructive",
+          });
+        }
+      };
 
-    fetchTimings();
-  }
-}, [service]);
-const getFilteredTimings = () => {
-  if (!date) return timings;
+      fetchPincodes();
+    }
+  }, [isOpen]);
 
-  const now = new Date();
-  const selectedDate = new Date(date);
+  useEffect(() => {
+    if (service && service.id) {
+      const fetchTimings = async () => {
+        try {
+          const { data, error } = await supabase
+            .from("services")
+            .select("preferred_timings")
+            .eq("id", service.id)
+            .single();
 
-  // If selected date is in the future → allow all timings
-  if (selectedDate.toDateString() !== now.toDateString()) {
-    return timings;
-  }
+          if (error) throw error;
+          if (data?.preferred_timings) setTimings(data.preferred_timings);
+        } catch (err) {
+          console.error("Failed to fetch timings:", err);
+          toast({
+            title: "Error",
+            description: "Could not load available timings.",
+            variant: "destructive",
+          });
+        }
+      };
 
-  // If selected date is today → filter past times
-  const currentMinutes =
-    now.getHours() * 60 + now.getMinutes();
+      fetchTimings();
+    }
+  }, [service]);
+  const getFilteredTimings = () => {
+    if (!date) return timings;
 
-  return timings.filter((t) => {
-    const [hour, minute] = t.split(":").map(Number);
-    const timingMinutes = hour * 60 + minute;
-    return timingMinutes > currentMinutes;
-  });
-};
+    const now = new Date();
+    const selectedDate = new Date(date);
+
+    // If selected date is in the future → allow all timings
+    if (selectedDate.toDateString() !== now.toDateString()) {
+      return timings;
+    }
+
+    // If selected date is today → filter past times
+    const currentMinutes =
+      now.getHours() * 60 + now.getMinutes();
+
+    return timings.filter((t) => {
+      const [hour, minute] = t.split(":").map(Number);
+      const timingMinutes = hour * 60 + minute;
+      return timingMinutes > currentMinutes;
+    });
+  };
 
 
   // Helper for address input changes
@@ -239,12 +255,12 @@ const getFilteredTimings = () => {
     });
   };
 
-const toggleAllServices = () => {
-  const availableTypes = SERVICE_TYPES
-    .filter(opt => Number(service[opt.priceKey]) > 0) // <-- cast to number
-    .map(opt => opt.key);
-  setServiceTypes(prev => prev.length === availableTypes.length ? [] : availableTypes);
-};
+  const toggleAllServices = () => {
+    const availableTypes = SERVICE_TYPES
+      .filter(opt => Number(service[opt.priceKey]) > 0) // <-- cast to number
+      .map(opt => opt.key);
+    setServiceTypes(prev => prev.length === availableTypes.length ? [] : availableTypes);
+  };
 
 
   const validateForm = () => {
@@ -284,7 +300,7 @@ const toggleAllServices = () => {
       addressErrors.pincode = "Must be 6 digits.";
     } else if (
       address.pincode.trim() &&
-      !ALLOWED_PINCODES.includes(address.pincode.trim())
+      !allowedPincodes.includes(address.pincode.trim())
     ) {
       addressErrors.pincode = "Service not available in this pincode.";
     }
@@ -423,7 +439,7 @@ const toggleAllServices = () => {
 
   if (!isOpen) return null;
 
-const availableServices = SERVICE_TYPES.filter(opt => Number(service[opt.priceKey]) > 0);
+  const availableServices = SERVICE_TYPES.filter(opt => Number(service[opt.priceKey]) > 0);
   // Type guard for nested address errors
   const addressErrors: Partial<Record<keyof ServiceAddress, string>> = typeof errors.address === 'object' && errors.address ? errors.address : {};
 
@@ -471,38 +487,38 @@ const availableServices = SERVICE_TYPES.filter(opt => Number(service[opt.priceKe
           <div>
             <label className="block mb-2 font-medium text-gray-700 flex items-center"><Calendar className="w-4 h-4 mr-1.5" style={{ color: PRIMARY_COLOR }} /> Date</label>
             <input type="date" value={date} min={minDate} onChange={e => {
-  setDate(e.target.value);
-  setTime(""); // reset invalid past time
-  setErrors(prev => {
-    const { date, time, ...rest } = prev;
-    return rest;
-  });
-}}
- className={`w-full border rounded-lg px-4 py-3 focus:ring-2 transition ${errors.date ? 'border-red-500' : 'border-gray-300'}`} style={{ '--tw-ring-color': PRIMARY_COLOR } as React.CSSProperties} />
+              setDate(e.target.value);
+              setTime(""); // reset invalid past time
+              setErrors(prev => {
+                const { date, time, ...rest } = prev;
+                return rest;
+              });
+            }}
+              className={`w-full border rounded-lg px-4 py-3 focus:ring-2 transition ${errors.date ? 'border-red-500' : 'border-gray-300'}`} style={{ '--tw-ring-color': PRIMARY_COLOR } as React.CSSProperties} />
             {errors.date && <p className="text-red-500 mt-1 text-sm">{errors.date}</p>}
           </div>
-<div>
-  <label className="block mb-2 font-medium text-gray-700 flex items-center">
-    <Clock className="w-4 h-4 mr-1.5" style={{ color: PRIMARY_COLOR }} /> Time
-  </label>
-  <select
-    value={time}
-    onChange={e => { setTime(e.target.value); setErrors(prev => { const { time, ...rest } = prev; return rest; }); }}
-    className={`w-full border rounded-lg px-4 py-3 focus:ring-2 transition ${errors.time ? 'border-red-500' : 'border-gray-300'}`}
-    style={{ '--tw-ring-color': PRIMARY_COLOR } as React.CSSProperties}
-  >
-    <option value="">Select Time</option>
-    {getFilteredTimings().length > 0 ? (
-  getFilteredTimings().map(t => (
-    <option key={t} value={t}>{t}</option>
-  ))
-) : (
-  <option disabled>No available timings</option>
-)}
+          <div>
+            <label className="block mb-2 font-medium text-gray-700 flex items-center">
+              <Clock className="w-4 h-4 mr-1.5" style={{ color: PRIMARY_COLOR }} /> Time
+            </label>
+            <select
+              value={time}
+              onChange={e => { setTime(e.target.value); setErrors(prev => { const { time, ...rest } = prev; return rest; }); }}
+              className={`w-full border rounded-lg px-4 py-3 focus:ring-2 transition ${errors.time ? 'border-red-500' : 'border-gray-300'}`}
+              style={{ '--tw-ring-color': PRIMARY_COLOR } as React.CSSProperties}
+            >
+              <option value="">Select Time</option>
+              {getFilteredTimings().length > 0 ? (
+                getFilteredTimings().map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))
+              ) : (
+                <option disabled>No available timings</option>
+              )}
 
-  </select>
-  {errors.time && <p className="text-red-500 mt-1 text-sm">{errors.time}</p>}
-</div>
+            </select>
+            {errors.time && <p className="text-red-500 mt-1 text-sm">{errors.time}</p>}
+          </div>
 
         </div>
 
