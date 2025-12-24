@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import type { LucideIcon } from "lucide-react";
+
 import Image from "next/image";
 import {
   Star,
@@ -94,18 +96,25 @@ export default function ReviewsPage() {
 
   // ---------------- HELPERS ----------------
   const badge = (status: Review["status"]) => {
-    const map = {
-      approved: ["Approved", "bg-green-100 text-green-700", CheckCircle],
-      rejected: ["Rejected", "bg-red-100 text-red-700", XCircle],
-      pending: ["Pending", "bg-yellow-100 text-yellow-700", Clock],
-    };
-    const [label, cls, Icon] = map[status];
-    return (
-      <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${cls}`}>
-        <Icon size={14} /> {label}
-      </span>
-    );
+  const map: Record<
+    Review["status"],
+    [string, string, LucideIcon]
+  > = {
+    approved: ["Approved", "bg-green-100 text-green-700", CheckCircle],
+    rejected: ["Rejected", "bg-red-100 text-red-700", XCircle],
+    pending: ["Pending", "bg-yellow-100 text-yellow-700", Clock],
   };
+
+  const [label, cls, Icon] = map[status];
+
+  return (
+    <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${cls}`}>
+      <Icon size={14} />
+      {label}
+    </span>
+  );
+};
+
 
   const stars = (n: number) => (
     <div className="flex gap-1">

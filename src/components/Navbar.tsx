@@ -22,6 +22,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+
+
 type SearchResult = {
   id: string | number;
   name: string;
@@ -185,9 +187,19 @@ export default function FullNavbar() {
         ]);
 
         const dbResults: SearchResult[] = [
-          ...(catRes.data || []).map((c) => ({ id: c.id, name: c.category, type: "category" })),
-          ...(subRes.data || []).map((s) => ({ id: s.id, name: s.subcategory, type: "subcategory", parent_category: s.category })),
+          ...(catRes.data ?? []).map((c): SearchResult => ({
+            id: c.id,
+            name: c.category,
+            type: "category",
+          })),
+          ...(subRes.data ?? []).map((s): SearchResult => ({
+            id: s.id,
+            name: s.subcategory,
+            type: "subcategory",
+            parent_category: s.category,
+          })),
         ];
+
 
         setSearchResults([...results, ...dbResults]);
       } catch (err) {
@@ -415,7 +427,9 @@ export default function FullNavbar() {
         >
 
           <div className="max-w-7xl mx-auto px-4 md:px-6">
-            <div className="flex flex-wrap justify-center gap-16 md:gap-20 lg:gap-24 transition-all duration-300">
+            <div className="flex gap-4 md:gap-16 lg:gap-24 transition-all duration-300
+                overflow-x-auto md:overflow-x-visible
+                scrollbar-hide -mx-4 px-4">
               {staticCategories.map((item) => (
                 <div key={item.id} className="relative group flex flex-col items-center">
                   {/* Category Link */}

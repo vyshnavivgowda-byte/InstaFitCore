@@ -90,7 +90,7 @@ const SLIDES_DATA: Slide[] = [
   },
   {
     id: 3,
-    img: "/ban.jpeg",
+    img: "/banner4.jpg",
     title: ".",
     subtitle: ".",
     cta: { text: "Contact Us", href: "/site/contact" },
