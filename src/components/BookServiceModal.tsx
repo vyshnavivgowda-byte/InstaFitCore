@@ -64,11 +64,12 @@ const initialAddressState: ServiceAddress = {
 };
 
 // --- Structured Error Type ---
+// --- Structured Error Type ---
 type FormErrors = {
   date?: string;
   time?: string;
   serviceTypes?: string;
-  address?: Record<keyof ServiceAddress, string> | string;
+  address?: Partial<Record<keyof ServiceAddress, string>> | string;
 };
 
 const SERVICE_TYPES = [
