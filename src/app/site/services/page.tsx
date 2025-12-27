@@ -112,6 +112,7 @@ function ServicesPageContent() {
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Booking Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -444,8 +445,12 @@ function ServicesPageContent() {
   // --- Filtered Services ---
   const filteredServices = useMemo(() => {
     let list = [...services];
+    if (selectedCategory)
+      list = list.filter((s) => s.category === selectedCategory);
+
     if (selectedSubcategory)
       list = list.filter((s) => s.subcategory === selectedSubcategory);
+
     if (activePriceFilter === "install")
       list = list.filter((s) => s.installation_price && s.installation_price > 0);
     if (activePriceFilter === "dismantle")
@@ -457,7 +462,20 @@ function ServicesPageContent() {
         s.service_name.toLowerCase().includes(searchText.toLowerCase())
       );
     return list;
-  }, [services, selectedSubcategory, activePriceFilter, searchText]);
+  }, [
+    services,
+    selectedCategory,      // 👈 ADD
+    selectedSubcategory,
+    activePriceFilter,
+    searchText
+  ]);
+
+  const [previousState, setPreviousState] = useState<{
+    topLevel: string | null;
+    category: string | null;
+    subcategory: string | null;
+    expandedCategoryId: number | null;
+  } | null>(null);
 
   const handleBookClick = (service: ServiceItem) => {
     if (authLoading) return; // still loading, do nothing
@@ -475,24 +493,39 @@ function ServicesPageContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* HEADER */}
-      <header className="bg-instafitcore-green text-white py-8 px-4 md:py-16 md:px-6 text-center shadow-lg relative">
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setShowMobileMenu(true)}
-          className="absolute top-4 left-4 md:hidden p-2 rounded-full bg-white/10 hover:bg-white/20"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
-        <div className="max-w-7xl mx-auto flex flex-col items-center justify-center text-center gap-4">
-          {/* Centered Content */}
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-extrabold flex items-center gap-3 justify-center">
-            <Bolt className="w-5 h-5 md:w-7 md:h-7" /> Premium Service Catalogue
+      <header className="bg-instafitcore-green text-white py-4 px-3 md:py-8 md:px-4 text-center shadow-lg relative">
+        <div className="max-w-4xl mx-auto flex flex-col items-center justify-center text-center gap-2">
+          <h1 className="text-lg md:text-xl lg:text-2xl font-extrabold flex items-center gap-2 justify-center">
+            <Bolt className="w-4 h-4 md:w-5 md:h-5" />
+            Premium Service Catalogue
           </h1>
-          <p className="text-sm md:text-base opacity-90 max-w-md">
+
+          <p className="text-xs md:text-sm opacity-90 max-w-sm">
             Find the perfect solution from our installation, repair & dismantling services.
           </p>
         </div>
       </header>
+      {previousState && selectedTopLevel !== "Furniture Service" && (
+        <div className="mt-4"> {/* Top margin only */}
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedTopLevel(previousState.topLevel);
+              setSelectedCategory(previousState.category);
+              setSelectedSubcategory(previousState.subcategory);
+              setExpandedCategoryId(previousState.expandedCategoryId);
+              setPreviousState(null);
+            }}
+            className="px-4 py-2 rounded-xl font-semibold 
+                 bg-instafitcore-green text-white hover:bg-instafitcore-green-hover
+                 shadow-md flex items-center gap-2"
+          >
+            ← Back
+          </button>
+        </div>
+      )}
+
+
 
       <div className="w-full flex flex-col lg:flex-row gap-6 md:gap-8 py-6 md:py-12 px-4 md:px-6">
         <aside className="hidden lg:block w-64 bg-white rounded-2xl shadow-xl p-5 sticky top-40 h-[calc(100vh-10rem)] overflow-y-auto">
@@ -518,7 +551,17 @@ function ServicesPageContent() {
                       }
 
                       // Other items → set selectedTopLevel
+                      setPreviousState({
+                        topLevel: selectedTopLevel,
+                        category: selectedCategory,
+                        subcategory: selectedSubcategory,
+                        expandedCategoryId,
+                      });
+
                       setSelectedTopLevel(item);
+                      setSelectedCategory(null);
+                      setSelectedSubcategory(null);
+                      setExpandedCategoryId(null);
                     }}
                     className={`w-full text-left px-4 py-3 rounded-xl font-semibold flex justify-between items-center transition-all min-h-[44px] ${isActive
                       ? "bg-instafitcore-green text-white shadow-md"
@@ -556,9 +599,12 @@ function ServicesPageContent() {
                         return (
                           <div key={cat.id}>
                             <button
-                              onClick={() =>
-                                setExpandedCategoryId(isExpanded ? null : cat.id)
-                              }
+                              onClick={() => {
+                                setExpandedCategoryId(isExpanded ? null : cat.id);
+                                setSelectedCategory(cat.name);   // 👈 IMPORTANT
+                                setSelectedSubcategory(null);    // reset subcategory
+                              }}
+
                               className={`w-full text-left px-3 py-2 rounded-lg text-sm font-semibold flex justify-between items-center transition-all ${isExpanded
                                 ? "bg-instafitcore-green/20 text-instafitcore-green"
                                 : "text-gray-800 hover:bg-gray-100"
@@ -608,28 +654,19 @@ function ServicesPageContent() {
 
           {/* 👉 MODULAR KITCHEN FORM VIEW */}
           {selectedTopLevel === "Customized Modular Kitchen" ? (
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <ModularKitchenRequestForm />
-            </div>
+            <ModularKitchenRequestForm />
 
           ) : selectedTopLevel === "Customized Modular Furniture" ? (
-            <div className="bg-white rounded-2xl shadow-xl p-6">
 
-              <ModularFurnitureRequestForm />
-            </div>
+            <ModularFurnitureRequestForm />
 
           ) : selectedTopLevel === "Relocation Services" ? (
-            <div className="bg-white rounded-2xl shadow-xl p-6">
 
-              <PackerMoversRequestForm />
-            </div>
+            <PackerMoversRequestForm />
 
           ) : selectedTopLevel === "B2B Services" ? (
-            <div className="bg-white rounded-2xl shadow-xl p-6">
 
-              <B2BServicesRequestForm />
-            </div>
-
+            <B2BServicesRequestForm />
 
           ) : (
 
@@ -871,7 +908,17 @@ function ServicesPageContent() {
                           setExpandedCategoryId(null);
                           setSelectedSubcategory(null);
                         } else {
+                          setPreviousState({
+                            topLevel: selectedTopLevel,
+                            category: selectedCategory,
+                            subcategory: selectedSubcategory,
+                            expandedCategoryId,
+                          });
+
                           setSelectedTopLevel(item);
+                          setSelectedCategory(null);
+                          setSelectedSubcategory(null);
+                          setExpandedCategoryId(null);
                         }
                         setShowMobileMenu(false); // Close modal
                       }}
@@ -910,9 +957,12 @@ function ServicesPageContent() {
                           return (
                             <div key={cat.id}>
                               <button
-                                onClick={() =>
-                                  setExpandedCategoryId(isExpanded ? null : cat.id)
-                                }
+                                onClick={() => {
+                                  setExpandedCategoryId(isExpanded ? null : cat.id);
+                                  setSelectedCategory(cat.name);   // 👈 IMPORTANT
+                                  setSelectedSubcategory(null);    // reset subcategory
+                                }}
+
                                 className={`w-full text-left px-3 py-2 rounded-lg text-sm font-semibold flex justify-between items-center transition-all ${isExpanded
                                   ? "bg-instafitcore-green/20 text-instafitcore-green"
                                   : "text-gray-800 hover:bg-gray-100"
@@ -1018,7 +1068,17 @@ function ServicesPageContent() {
                             setExpandedCategoryId(null);
                             setSelectedSubcategory(null);
                           } else {
+                            setPreviousState({
+                              topLevel: selectedTopLevel,
+                              category: selectedCategory,
+                              subcategory: selectedSubcategory,
+                              expandedCategoryId,
+                            });
+
                             setSelectedTopLevel(item);
+                            setSelectedCategory(null);
+                            setSelectedSubcategory(null);
+                            setExpandedCategoryId(null);
                             setSelectedSubcategory(null);
                           }
                         }}
@@ -1058,9 +1118,12 @@ function ServicesPageContent() {
                             return (
                               <div key={cat.id}>
                                 <button
-                                  onClick={() =>
-                                    setExpandedCategoryId(isExpanded ? null : cat.id)
-                                  }
+                                  onClick={() => {
+                                    setExpandedCategoryId(isExpanded ? null : cat.id);
+                                    setSelectedCategory(cat.name);   // 👈 IMPORTANT
+                                    setSelectedSubcategory(null);    // reset subcategory
+                                  }}
+
                                   className={`w-full text-left px-3 py-2 rounded-lg text-sm font-semibold flex justify-between items-center transition-all ${isExpanded
                                     ? "bg-instafitcore-green/20 text-instafitcore-green"
                                     : "text-gray-800 hover:bg-gray-100"

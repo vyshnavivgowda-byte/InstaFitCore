@@ -115,6 +115,17 @@ const AddressForm: React.FC<{
                 />
                 {errors.customer_name && <p className="text-red-500 text-sm mt-1">{errors.customer_name}</p>}
             </div>
+             <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Pincode *</label>
+                <input
+                    type="text"
+                    value={fields.pincode}
+                    onChange={(e) => handleChange('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    disabled={disabled}
+                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 ${errors.pincode ? 'border-red-500' : 'border-gray-300'}`}
+                />
+                {errors.pincode && <p className="text-red-500 text-sm mt-1">{errors.pincode}</p>}
+            </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number *</label>
                 <input
@@ -125,16 +136,6 @@ const AddressForm: React.FC<{
                     className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 ${errors.mobile ? 'border-red-500' : 'border-gray-300'}`}
                 />
                 {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>}
-            </div>
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Alternate Mobile</label>
-                <input
-                    type="tel"
-                    value={fields.alternate_mobile}
-                    onChange={(e) => handleChange('alternate_mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    disabled={disabled}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                />
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Flat / House / Plot No *</label>
@@ -220,16 +221,15 @@ const AddressForm: React.FC<{
                 />
                 {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
             </div>
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Pincode *</label>
+             <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Alternate Mobile</label>
                 <input
-                    type="text"
-                    value={fields.pincode}
-                    onChange={(e) => handleChange('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    type="tel"
+                    value={fields.alternate_mobile}
+                    onChange={(e) => handleChange('alternate_mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
                     disabled={disabled}
-                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 ${errors.pincode ? 'border-red-500' : 'border-gray-300'}`}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 />
-                {errors.pincode && <p className="text-red-500 text-sm mt-1">{errors.pincode}</p>}
             </div>
         </div>
     );
@@ -582,73 +582,73 @@ export default function CartPage() {
             description: "Service Booking Payment",
             order_id: order.id,
 
-           handler: async function (response: any) {
-    try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const userId = sessionData?.session?.user?.id;
+            handler: async function (response: any) {
+                try {
+                    const { data: sessionData } = await supabase.auth.getSession();
+                    const userId = sessionData?.session?.user?.id;
 
-        if (!userId) throw new Error("User not logged in");
+                    if (!userId) throw new Error("User not logged in");
 
-        const today = new Date();
-        const bookingDate = today.toISOString().split("T")[0]; // YYYY-MM-DD
-        const bookingTime = today.toTimeString().slice(0, 5); // HH:mm
+                    const today = new Date();
+                    const bookingDate = today.toISOString().split("T")[0]; // YYYY-MM-DD
+                    const bookingTime = today.toTimeString().slice(0, 5); // HH:mm
 
-        // 📦 Build address string
-        const fullAddress = `
+                    // 📦 Build address string
+                    const fullAddress = `
 ${addressFields.flat_no}, ${addressFields.street},
 ${addressFields.area_zone}, ${addressFields.city},
 ${addressFields.state} - ${addressFields.pincode}
         `.trim();
 
-        // 💾 INSERT BOOKINGS (one per cart item)
-        const bookingPayload = cartItems.map(item => ({
-            user_id: userId,
-            customer_name: addressFields.customer_name,
-            customer_mobile: addressFields.mobile,
-            date: bookingDate,
-            booking_time: bookingTime,
-            status: "Pending",
-            service_name: item.service?.service_name || "Service",
-            service_types: item.selected_services || [],
-            total_price:
-                item.quantity *
-                calculateUnitServicePrice(item.service, item.selected_services),
-            address: fullAddress,
-            service_id: item.service_id,
-            payment_id: response.razorpay_payment_id || null,
-        }));
+                    // 💾 INSERT BOOKINGS (one per cart item)
+                    const bookingPayload = cartItems.map(item => ({
+                        user_id: userId,
+                        customer_name: addressFields.customer_name,
+                        customer_mobile: addressFields.mobile,
+                        date: bookingDate,
+                        booking_time: bookingTime,
+                        status: "Pending",
+                        service_name: item.service?.service_name || "Service",
+                        service_types: item.selected_services || [],
+                        total_price:
+                            item.quantity *
+                            calculateUnitServicePrice(item.service, item.selected_services),
+                        address: fullAddress,
+                        service_id: item.service_id,
+                        payment_id: response.razorpay_payment_id || null,
+                    }));
 
-        const { error: bookingError } = await supabase
-            .from("bookings")
-            .insert(bookingPayload);
+                    const { error: bookingError } = await supabase
+                        .from("bookings")
+                        .insert(bookingPayload);
 
-        if (bookingError) {
-            console.error("Booking insert failed:", bookingError);
-            throw bookingError;
-        }
+                    if (bookingError) {
+                        console.error("Booking insert failed:", bookingError);
+                        throw bookingError;
+                    }
 
-        // 🧹 CLEAR CART (DB)
-        await supabase
-            .from("cart_items")
-            .delete()
-            .eq("user_id", userId);
+                    // 🧹 CLEAR CART (DB)
+                    await supabase
+                        .from("cart_items")
+                        .delete()
+                        .eq("user_id", userId);
 
-        // 🧹 CLEAR UI
-        setCartItems([]);
+                    // 🧹 CLEAR UI
+                    setCartItems([]);
 
-        // 🚀 Redirect
-        router.push("/site/order-tracking");
+                    // 🚀 Redirect
+                    router.push("/site/order-tracking");
 
-    } catch (err) {
-        console.error("Booking failed:", err);
-        toast({
-            title: "Payment successful",
-            description: "But booking creation failed. Contact support.",
-            variant: "destructive",
-        });
-        router.push("/site/order-tracking");
-    }
-},
+                } catch (err) {
+                    console.error("Booking failed:", err);
+                    toast({
+                        title: "Payment successful",
+                        description: "But booking creation failed. Contact support.",
+                        variant: "destructive",
+                    });
+                    router.push("/site/order-tracking");
+                }
+            },
 
 
             prefill: {
@@ -683,12 +683,76 @@ ${addressFields.state} - ${addressFields.pincode}
             }
 
         } else {
-            errors.pincode = "Pincode is required.";
+            errors.pincode = "Check if the service is available in your location.";
         }
 
         return errors;
     };
 
+    const handleUseMyLocation = async () => {
+        if (!navigator.geolocation) {
+            toast({
+                title: "Not supported",
+                description: "Geolocation is not supported in this browser.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const { latitude, longitude } = position.coords;
+
+                    const res = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+                        {
+                            headers: {
+                                Accept: "application/json",
+                                "User-Agent": "InstaFitCore/1.0 (support@instafitcore.com)",
+                            },
+                        }
+                    );
+
+                    const data = await res.json();
+
+                    if (!data?.address) throw new Error("No address found");
+
+                    const addr = data.address;
+
+                    setAddressFields(prev => ({
+                        ...prev,
+                        street: addr.road || "",
+                        area_zone: addr.suburb || addr.neighbourhood || "",
+                        city: addr.city || addr.town || addr.village || "",
+                        state: addr.state || "",
+                        pincode: addr.postcode || "",
+                    }));
+
+                    toast({
+                        title: "Location detected",
+                        description: "Address auto-filled successfully.",
+                        variant: "success",
+                    });
+
+                } catch (err) {
+                    console.error("Location error:", err);
+                    toast({
+                        title: "Failed",
+                        description: "Could not fetch address from location.",
+                        variant: "destructive",
+                    });
+                }
+            },
+            () => {
+                toast({
+                    title: "Permission denied",
+                    description: "Please allow location access.",
+                    variant: "destructive",
+                });
+            }
+        );
+    };
 
     useEffect(() => {
         const errors = validateAddress(addressFields);
@@ -835,9 +899,23 @@ ${addressFields.state} - ${addressFields.pincode}
 
                 {/* 2. Service Address */}
                 <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-xl mb-8 border border-gray-100">
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800 border-b-2 pb-2 mb-6" style={{ borderColor: PRIMARY_COLOR }}>
-                        <MapPin className="w-5 h-5 inline-block mr-2" style={{ color: PRIMARY_COLOR }} /> Service Address
-                    </h2>
+                    <div className="flex items-center justify-between border-b-2 pb-2 mb-6" style={{ borderColor: PRIMARY_COLOR }}>
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+                            <MapPin className="w-5 h-5 inline-block mr-2" style={{ color: PRIMARY_COLOR }} />
+                            Service Address
+                        </h2>
+
+                        <button
+                            type="button"
+                            onClick={handleUseMyLocation}
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg text-white shadow-md hover:opacity-90 transition"
+                            style={{ backgroundColor: PRIMARY_COLOR }}
+                        >
+                            <MapPin className="w-4 h-4" />
+                            Use My Location
+                        </button>
+                    </div>
+
                     <AddressForm
                         fields={addressFields}
                         setFields={setAddressFields}

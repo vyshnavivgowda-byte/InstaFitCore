@@ -79,7 +79,7 @@ const SERVICE_TYPES = [
 
 // --- Reusable Input Component for cleaner JSX ---
 const InputField = ({ label, type = "text", value, onChange, error, className = "", maxLength }: {
-label: React.ReactNode;
+  label: React.ReactNode;
   type?: string;
   value: string;
   onChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
@@ -201,6 +201,113 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
       fetchTimings();
     }
   }, [service]);
+
+  useEffect(() => {
+    const pin = address.pincode.trim();
+
+    if (pin.length === 6) {
+      if (!/^\d{6}$/.test(pin)) {
+        toast({
+          title: "Invalid Pincode",
+          description: "Pincode must be 6 digits",
+          variant: "destructive",
+        });
+      } else if (!allowedPincodes.includes(pin)) {
+        toast({
+          title: "Service Unavailable",
+          description: "Sorry, service is not available in this pincode",
+          variant: "destructive",
+        });
+
+        setErrors((prev) => ({
+          ...prev,
+          address: {
+            ...(typeof prev.address === "object" ? prev.address : {}),
+            pincode: "Service not available in this pincode",
+          },
+        }));
+      } else {
+        // Clear pincode error if valid
+        setErrors((prev) => {
+          if (typeof prev.address === "object") {
+            const { pincode, ...rest } = prev.address;
+            return { ...prev, address: rest };
+          }
+          return prev;
+        });
+      }
+    }
+  }, [address.pincode, allowedPincodes]);
+
+
+  const autoFillAddress = async () => {
+    if (!navigator.geolocation) {
+      toast({
+        title: "Not supported",
+        description: "Geolocation is not supported by your browser",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+            {
+              headers: {
+                Accept: "application/json",
+                "User-Agent": "InstaFitCore/1.0 (contact@instafitcore.com)",
+              },
+            }
+          );
+
+          const data = await res.json();
+          console.log("Reverse geocode response:", data);
+
+          if (!data?.address) {
+            throw new Error("No address found");
+          }
+
+          const addr = data.address;
+
+          setAddress((prev) => ({
+            ...prev,
+            areaZone: addr.suburb || addr.neighbourhood || "",
+            cityTown: addr.city || addr.town || addr.village || "",
+            state: addr.state || "",
+            pincode: addr.postcode || "",
+            streetLocality: addr.road || "",
+          }));
+
+          toast({
+            title: "Address filled",
+            description: "Location details added automatically",
+            variant: "success",
+          });
+        } catch (err) {
+          console.error("Auto-fill error:", err);
+          toast({
+            title: "Failed",
+            description: "Could not fetch address details",
+            variant: "destructive",
+          });
+        }
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        toast({
+          title: "Permission denied",
+          description: "Location access is required to auto-fill address",
+          variant: "destructive",
+        });
+      }
+    );
+  };
+
   const getFilteredTimings = () => {
     if (!date) return timings;
 
@@ -374,107 +481,107 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
   };
 
   const generateOrderNumber = async () => {
-  // Get current date
-  const now = new Date();
-  const day = String(now.getDate()).padStart(2, "0");
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const year = now.getFullYear();
-
-  // Count today's orders to generate a sequential number
-  const { count, error } = await supabase
-    .from("bookings")
-    .select("*", { count: "exact", head: true })
-    .eq("date", now.toISOString().split("T")[0]); // filter today's date
-
-  const sequence = count ? count + 1 : 1; // next number
-  const sequenceStr = String(sequence).padStart(4, "0"); // 0001, 0002, etc.
-
-  return `${day}${month}${year}${sequenceStr}`;
-};
-
-
-  // --- Save booking after payment ---
-  // --- Save booking after payment ---
-  const handleSubmit = async (payment_id?: string) => {
-  try {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) throw new Error("User not logged in");
-
-    // --- Generate Order Number ---
+    // Get current date
     const now = new Date();
     const day = String(now.getDate()).padStart(2, "0");
     const month = String(now.getMonth() + 1).padStart(2, "0");
     const year = now.getFullYear();
 
-    // Count today's orders to generate sequential number
-    const { count, error: countError } = await supabase
+    // Count today's orders to generate a sequential number
+    const { count, error } = await supabase
       .from("bookings")
       .select("*", { count: "exact", head: true })
-      .eq("date", now.toISOString().split("T")[0]);
+      .eq("date", now.toISOString().split("T")[0]); // filter today's date
 
-    if (countError) throw new Error("Failed to generate order number");
+    const sequence = count ? count + 1 : 1; // next number
+    const sequenceStr = String(sequence).padStart(4, "0"); // 0001, 0002, etc.
 
-    const sequence = count ? count + 1 : 1;
-    const sequenceStr = String(sequence).padStart(4, "0");
-    const orderNumber = `${day}/${month}/${year}/${sequenceStr}`;
+    return `${day}${month}${year}${sequenceStr}`;
+  };
 
-    // Format address
-    const formattedAddress =
-      `${address.flatHousePlot}, Floor ${address.floor}, ${address.buildingApartment}, ${address.streetLocality}, ${address.areaZone}, ${address.cityTown}, ${address.state} - ${address.pincode}` +
-      (address.landmark.trim() ? ` (Landmark: ${address.landmark})` : '');
 
-    // Insert booking
-    const { data, error } = await supabase
-      .from("bookings")
-      .insert([
-        {
-          user_id: userData.user.id,
-          customer_name: address.fullName,
-          customer_mobile: address.mobile,
-          service_id: service.id,
-          service_name: service.service_name,
-          service_types: serviceTypes,
-          date,
-          booking_time: time.length === 5 ? `${time}:00` : time,
-          total_price: totalPrice,
-          address: formattedAddress,
-          status: payment_id ? "Paid" : "Pending",
-          payment_id: payment_id || null,
-        },
-      ])
-      .select();
+  // --- Save booking after payment ---
+  // --- Save booking after payment ---
+  const handleSubmit = async (payment_id?: string) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("User not logged in");
 
-    if (error) {
-      console.error("Supabase insert error:", error);
+      // --- Generate Order Number ---
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, "0");
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const year = now.getFullYear();
+
+      // Count today's orders to generate sequential number
+      const { count, error: countError } = await supabase
+        .from("bookings")
+        .select("*", { count: "exact", head: true })
+        .eq("date", now.toISOString().split("T")[0]);
+
+      if (countError) throw new Error("Failed to generate order number");
+
+      const sequence = count ? count + 1 : 1;
+      const sequenceStr = String(sequence).padStart(4, "0");
+      const orderNumber = `${day}/${month}/${year}/${sequenceStr}`;
+
+      // Format address
+      const formattedAddress =
+        `${address.flatHousePlot}, Floor ${address.floor}, ${address.buildingApartment}, ${address.streetLocality}, ${address.areaZone}, ${address.cityTown}, ${address.state} - ${address.pincode}` +
+        (address.landmark.trim() ? ` (Landmark: ${address.landmark})` : '');
+
+      // Insert booking
+      const { data, error } = await supabase
+        .from("bookings")
+        .insert([
+          {
+            user_id: userData.user.id,
+            customer_name: address.fullName,
+            customer_mobile: address.mobile,
+            service_id: service.id,
+            service_name: service.service_name,
+            service_types: serviceTypes,
+            date,
+            booking_time: time.length === 5 ? `${time}:00` : time,
+            total_price: totalPrice,
+            address: formattedAddress,
+            status: payment_id ? "Paid" : "Pending",
+            payment_id: payment_id || null,
+          },
+        ])
+        .select();
+
+      if (error) {
+        console.error("Supabase insert error:", error);
+        setSubmissionStatus('error');
+        toast({
+          title: "Booking failed",
+          description: "Please check the details and try again.",
+          variant: "destructive",
+        });
+      } else {
+        setSubmissionStatus('success');
+        toast({
+          title: "Booking successful!",
+          description: `Your booking for ${service.service_name} has been confirmed. Order No: ${orderNumber}`,
+          variant: "success",
+        });
+        onClose();
+        router.push("/site/order-tracking");
+      }
+
+    } catch (err) {
+      console.error("Booking failed:", err);
       setSubmissionStatus('error');
       toast({
         title: "Booking failed",
-        description: "Please check the details and try again.",
+        description: "Unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-    } else {
-      setSubmissionStatus('success');
-      toast({
-        title: "Booking successful!",
-        description: `Your booking for ${service.service_name} has been confirmed. Order No: ${orderNumber}`,
-        variant: "success",
-      });
-      onClose();
-      router.push("/site/order-tracking");
+    } finally {
+      setIsSubmitting(false);
     }
-
-  } catch (err) {
-    console.error("Booking failed:", err);
-    setSubmissionStatus('error');
-    toast({
-      title: "Booking failed",
-      description: "Unexpected error occurred. Please try again.",
-      variant: "destructive",
-    });
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
 
   if (!isOpen) return null;
@@ -564,103 +671,122 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
 
         {/* REF: Address Section - REPLACED WITH STRUCTURED FIELDS */}
         <div className="mb-8 p-4 rounded-xl border-2" style={{ backgroundColor: LIGHT_BG, borderColor: BORDER_COLOR }}>
-  <label className="block mb-4 text-lg font-bold text-gray-700 flex items-center">
-    <MapPin className="w-5 h-5 mr-2" style={{ color: PRIMARY_COLOR }} /> Service Address Details
-  </label>
+          <div className="flex items-center justify-between mb-4">
+            <label className="text-lg font-bold text-gray-700 flex items-center">
+              <MapPin className="w-5 h-5 mr-2" style={{ color: PRIMARY_COLOR }} />
+              Service Address Details
+            </label>
 
-  {/* Contact Details */}
-  <div className="space-y-4 mb-4">
-    <InputField
-      label={<>Customer Full Name <span className="text-red-500">*</span></>}
-      value={address.fullName}
-      onChange={(e) => handleAddressChange("fullName", e.target.value)}
-      error={addressErrors.fullName}
-    />
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <InputField
-        label={<>Mobile Number <span className="text-red-500">*</span></>}
-        type="tel"
-        value={address.mobile}
-        onChange={(e) => handleAddressChange("mobile", e.target.value)}
-        error={addressErrors.mobile}
-        maxLength={10}
-      />
-      <InputField
-        label="Alternate Mobile (Optional)"
-        type="tel"
-        value={address.alternateMobile}
-        onChange={(e) => handleAddressChange("alternateMobile", e.target.value)}
-        maxLength={10}
-      />
-    </div>
-  </div>
+            <button
+              type="button"
+              onClick={autoFillAddress}
+              className="text-sm font-semibold px-3 py-1 rounded-lg border hover:bg-green-50"
+              style={{ borderColor: PRIMARY_COLOR, color: PRIMARY_COLOR }}
+            >
+              Use My Location
+            </button>
+          </div>
 
-  <hr className="my-6 border-gray-200" />
 
-  {/* Location Details */}
-  <div className="space-y-4">
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <InputField
-        label={<>Flat / House / Plot No <span className="text-red-500">*</span></>}
-        value={address.flatHousePlot}
-        onChange={(e) => handleAddressChange("flatHousePlot", e.target.value)}
-        error={addressErrors.flatHousePlot}
-      />
-      <InputField
-        label="Floor"
-        value={address.floor}
-        onChange={(e) => handleAddressChange("floor", e.target.value)}
-        error={addressErrors.floor}
-      />
-    </div>
-    <InputField
-      label={<>Building / Apartment Name <span className="text-red-500">*</span></>}
-      value={address.buildingApartment}
-      onChange={(e) => handleAddressChange("buildingApartment", e.target.value)}
-      error={addressErrors.buildingApartment}
-    />
+          {/* Contact Details */}
+          <div className="space-y-4 mb-4">
+            <InputField
+              label={<>Customer Full Name <span className="text-red-500">*</span></>}
+              value={address.fullName}
+              onChange={(e) => handleAddressChange("fullName", e.target.value)}
+              error={addressErrors.fullName}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <InputField
+                label={<>Mobile Number <span className="text-red-500">*</span></>}
+                type="tel"
+                value={address.mobile}
+                onChange={(e) => handleAddressChange("mobile", e.target.value)}
+                error={addressErrors.mobile}
+                maxLength={10}
+              />
+              <InputField
+                label={<>Pincode <span className="text-red-500">*</span></>}
+                value={address.pincode}
+                onChange={(e) =>
+                  handleAddressChange("pincode", e.target.value.replace(/\D/g, ""))
+                }
+                error={addressErrors.pincode}
+                maxLength={6}
+              />
+            </div>
 
-    <InputField
-      label={<>Street / Locality <span className="text-red-500">*</span></>}
-      value={address.streetLocality}
-      onChange={(e) => handleAddressChange("streetLocality", e.target.value)}
-      error={addressErrors.streetLocality}
-    />
-    <InputField
-      label={<>Area / Zone <span className="text-red-500">*</span></>}
-      value={address.areaZone}
-      onChange={(e) => handleAddressChange("areaZone", e.target.value)}
-      error={addressErrors.areaZone}
-    />
-    <InputField
-      label="Landmark (Optional)"
-      value={address.landmark}
-      onChange={(e) => handleAddressChange("landmark", e.target.value)}
-    />
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <InputField
-        label={<>City / Town <span className="text-red-500">*</span></>}
-        value={address.cityTown}
-        onChange={(e) => handleAddressChange("cityTown", e.target.value)}
-        error={addressErrors.cityTown}
-      />
-      <InputField
-        label={<>State <span className="text-red-500">*</span></>}
-        value={address.state}
-        onChange={(e) => handleAddressChange("state", e.target.value)}
-        error={addressErrors.state}
-      />
-      <InputField
-        label={<>Pincode <span className="text-red-500">*</span></>}
-        value={address.pincode}
-        onChange={(e) => handleAddressChange("pincode", e.target.value)}
-        error={addressErrors.pincode}
-        maxLength={6}
-      />
-    </div>
-  </div>
-  {typeof errors.address === 'string' && <p className="text-red-500 mt-2 text-sm flex items-center"><AlertTriangle className="w-4 h-4 mr-1" />{errors.address}</p>}
-</div>
+            <hr className="my-6 border-gray-200" />
+
+            {/* Location Details */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <InputField
+                  label={<>Flat / House / Plot No <span className="text-red-500">*</span></>}
+                  value={address.flatHousePlot}
+                  onChange={(e) => handleAddressChange("flatHousePlot", e.target.value)}
+                  error={addressErrors.flatHousePlot}
+                />
+                <InputField
+                  label="Floor"
+                  value={address.floor}
+                  onChange={(e) => handleAddressChange("floor", e.target.value)}
+                  error={addressErrors.floor}
+                />
+              </div>
+              <InputField
+                label={<>Building / Apartment Name <span className="text-red-500">*</span></>}
+                value={address.buildingApartment}
+                onChange={(e) => handleAddressChange("buildingApartment", e.target.value)}
+                error={addressErrors.buildingApartment}
+              />
+
+              <InputField
+                label={<>Street / Locality <span className="text-red-500">*</span></>}
+                value={address.streetLocality}
+                onChange={(e) => handleAddressChange("streetLocality", e.target.value)}
+                error={addressErrors.streetLocality}
+              />
+              <InputField
+                label={<>Area / Zone <span className="text-red-500">*</span></>}
+                value={address.areaZone}
+                onChange={(e) => handleAddressChange("areaZone", e.target.value)}
+                error={addressErrors.areaZone}
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <InputField
+                  label="Landmark (Optional)"
+                  value={address.landmark}
+                  onChange={(e) => handleAddressChange("landmark", e.target.value)}
+                />
+                <InputField
+                  label={<>City / Town <span className="text-red-500">*</span></>}
+                  value={address.cityTown}
+                  onChange={(e) => handleAddressChange("cityTown", e.target.value)}
+                  error={addressErrors.cityTown}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <InputField
+                  label={<>State <span className="text-red-500">*</span></>}
+                  value={address.state}
+                  onChange={(e) => handleAddressChange("state", e.target.value)}
+                  error={addressErrors.state}
+                />
+
+                <InputField
+                  label="Alternate Mobile (Optional)"
+                  type="tel"
+                  value={address.alternateMobile}
+                  onChange={(e) => handleAddressChange("alternateMobile", e.target.value)}
+                  maxLength={10}
+                />
+              </div>
+            </div>
+          </div>
+          {typeof errors.address === 'string' && <p className="text-red-500 mt-2 text-sm flex items-center"><AlertTriangle className="w-4 h-4 mr-1" />{errors.address}</p>}
+        </div>
 
 
         {/* Total & Confirm */}

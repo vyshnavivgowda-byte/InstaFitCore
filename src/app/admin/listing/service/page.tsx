@@ -14,7 +14,7 @@ type ServiceItem = {
   installation_price?: number | null;
   dismantling_price?: number | null;
   repair_price?: number | null;
-preferred_timings?: string[]; 
+  preferred_timings?: string[];
 };
 
 type Subcategory = {
@@ -56,26 +56,27 @@ export default function ServicesAdminPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [preferredTimings, setPreferredTimings] = useState<string[]>([]);
-const [editPreferredTimings, setEditPreferredTimings] = useState<string[]>([]);
+  const [editPreferredTimings, setEditPreferredTimings] = useState<string[]>([]);
 
-const HOURS = Array.from({ length: 12 }, (_, i) =>
-  String(i + 1).padStart(2, "0")
-);
+  const HOURS = Array.from({ length: 12 }, (_, i) =>
+    String(i + 1).padStart(2, "0")
+  );
 
-const MINUTES = Array.from({ length: 12 }, (_, i) =>
-  String(i * 5).padStart(2, "0")
-);
+  const MINUTES = Array.from({ length: 12 }, (_, i) =>
+    String(i * 5).padStart(2, "0")
+  );
 
-const MERIDIEM = ["AM", "PM"];
+  const MERIDIEM = ["AM", "PM"];
 
-const parseTime = (value: string) => {
-  const [time, meridiem] = value.split(" ");
-  const [hour = "01", minute = "00"] = time?.split(":") || [];
-  return { hour, minute, meridiem: meridiem || "AM" };
-};
+  const parseTime = (value: string) => {
+    const [time, meridiem] = value.split(" ");
+    const [hour = "01", minute = "00"] = time?.split(":") || [];
+    return { hour, minute, meridiem: meridiem || "AM" };
+  };
 
-const buildTime = (hour: string, minute: string, meridiem: string) =>
-  `${hour}:${minute} ${meridiem}`;
+  const buildTime = (hour: string, minute: string, meridiem: string) =>
+    `${hour}:${minute} ${meridiem}`;
+
 
 
   const convertToBase64 = (file: File) =>
@@ -85,6 +86,7 @@ const buildTime = (hour: string, minute: string, meridiem: string) =>
       reader.onload = () => resolve(reader.result as string | null);
       reader.onerror = reject;
     });
+
 
   const fetchServices = async (
     q: string = "",
@@ -135,18 +137,20 @@ const buildTime = (hour: string, minute: string, meridiem: string) =>
   }, []);
 
   const addTiming = (timings: string[], setTimings: Function) => {
-  setTimings([...timings, ""]);
-};
+    setTimings([...timings, "09:00 AM - 10:00 AM"]);
+  };
 
-const updateTiming = (index: number, value: string, timings: string[], setTimings: Function) => {
-  const newTimings = [...timings];
-  newTimings[index] = value;
-  setTimings(newTimings);
-};
 
-const removeTiming = (index: number, timings: string[], setTimings: Function) => {
-  setTimings(timings.filter((_, i) => i !== index));
-};
+
+  const updateTiming = (index: number, value: string, timings: string[], setTimings: Function) => {
+    const newTimings = [...timings];
+    newTimings[index] = value;
+    setTimings(newTimings);
+  };
+
+  const removeTiming = (index: number, timings: string[], setTimings: Function) => {
+    setTimings(timings.filter((_, i) => i !== index));
+  };
 
 
   const validateService = (
@@ -155,8 +159,10 @@ const removeTiming = (index: number, timings: string[], setTimings: Function) =>
     name: string,
     inst: number | "",
     dis: number | "",
-    rep: number | ""
+    rep: number | "",
+    timings?: string[]
   ) => {
+
     if (!category || !subcategory || !name) {
       addToast("Please fill required fields: Category, Subcategory, and Service Name!", "error");
       return false;
@@ -165,11 +171,31 @@ const removeTiming = (index: number, timings: string[], setTimings: Function) =>
       addToast("At least one price must be provided!", "error");
       return false;
     }
+    if (!timings || timings.filter(t => t.trim()).length === 0) {
+      addToast("Please add at least one preferred timing!", "error");
+      return false;
+    }
+
+
     return true;
   };
 
   const handleAddService = async () => {
-    if (!validateService(serviceCategory, serviceSubcategory, serviceName, installationPrice, dismantlingPrice, repairPrice)) return;
+    const cleanTimings = Array.from(
+      new Set(preferredTimings.filter(t => t.trim()))
+    );
+
+    if (
+      !validateService(
+        serviceCategory,
+        serviceSubcategory,
+        serviceName,
+        installationPrice,
+        dismantlingPrice,
+        repairPrice,
+        cleanTimings
+      )
+    ) return;
 
     // Check for duplicate service name
     try {
@@ -195,7 +221,7 @@ const removeTiming = (index: number, timings: string[], setTimings: Function) =>
           installation_price: installationPrice || null,
           dismantling_price: dismantlingPrice || null,
           repair_price: repairPrice || null,
-          preferred_timings: preferredTimings, 
+          preferred_timings: cleanTimings,
           image_url: img,
         },
       ]);
@@ -225,36 +251,51 @@ const removeTiming = (index: number, timings: string[], setTimings: Function) =>
     setInitialEditItem({ ...item });
     setPreview(item.image_url || null);
     setImageFile(null);
-    setEditPreferredTimings(item.preferred_timings || []); 
+    setEditPreferredTimings(item.preferred_timings || []);
     setEditModalOpen(true);
     setPreferredTimings([]);
 
   };
 
   const hasChanges = () => {
-  if (!editItem || !initialEditItem) return false;
+    if (!editItem || !initialEditItem) return false;
 
-  return (
-    editItem.category !== initialEditItem.category ||
-    editItem.subcategory !== initialEditItem.subcategory ||
-    editItem.service_name !== initialEditItem.service_name ||
-    editItem.installation_price !== initialEditItem.installation_price ||
-    editItem.dismantling_price !== initialEditItem.dismantling_price ||
-    editItem.repair_price !== initialEditItem.repair_price ||
+    return (
+      editItem.category !== initialEditItem.category ||
+      editItem.subcategory !== initialEditItem.subcategory ||
+      editItem.service_name !== initialEditItem.service_name ||
+      editItem.installation_price !== initialEditItem.installation_price ||
+      editItem.dismantling_price !== initialEditItem.dismantling_price ||
+      editItem.repair_price !== initialEditItem.repair_price ||
 
-    // ✅ FIXED: compare the ACTUAL edited timings
-    JSON.stringify(editPreferredTimings || []) !==
-    JSON.stringify(initialEditItem.preferred_timings || []) ||
+      // ✅ FIXED: compare the ACTUAL edited timings
+      JSON.stringify(editPreferredTimings || []) !==
+      JSON.stringify(initialEditItem.preferred_timings || []) ||
 
-    imageFile !== null
+      imageFile !== null
+    );
+  };
+
+  const cleanEditTimings = Array.from(
+    new Set(editPreferredTimings.filter(Boolean))
   );
-};
-
 
 
   const handleUpdateService = async () => {
     if (!editItem) return;
-    if (!validateService(editItem.category, editItem.subcategory, editItem.service_name, editItem.installation_price || 0, editItem.dismantling_price || 0, editItem.repair_price || 0)) return;
+    const cleanEditTimings = Array.from(
+      new Set(editPreferredTimings.filter(t => t.trim()))
+    );
+
+    if (!validateService(
+      editItem.category,
+      editItem.subcategory,
+      editItem.service_name,
+      editItem.installation_price || 0,
+      editItem.dismantling_price || 0,
+      editItem.repair_price || 0,
+      cleanEditTimings
+    )) return;
 
     // Check for duplicate service name
     try {
@@ -282,7 +323,7 @@ const removeTiming = (index: number, timings: string[], setTimings: Function) =>
           installation_price: editItem.installation_price,
           dismantling_price: editItem.dismantling_price,
           repair_price: editItem.repair_price,
-          preferred_timings: editPreferredTimings,
+          preferred_timings: cleanEditTimings,
           image_url: updatedImage,
         })
         .eq("id", editItem.id);
@@ -318,6 +359,29 @@ const removeTiming = (index: number, timings: string[], setTimings: Function) =>
     setDeleteModalOpen(false);
     setItemToDelete(null);
   };
+  const parseTimeRange = (value: string) => {
+    const [start = "09:00 AM", end = "10:00 AM"] = value.split(" - ");
+
+    const parse = (v: string) => {
+      const [time, meridiem] = v.split(" ");
+      const [hour = "09", minute = "00"] = time.split(":");
+      return { hour, minute, meridiem };
+    };
+
+    return {
+      start: parse(start),
+      end: parse(end),
+    };
+  };
+
+  const buildTimeRange = (
+    sh: string,
+    sm: string,
+    sMer: string,
+    eh: string,
+    em: string,
+    eMer: string
+  ) => `${sh}:${sm} ${sMer} - ${eh}:${em} ${eMer}`;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -402,14 +466,14 @@ const removeTiming = (index: number, timings: string[], setTimings: Function) =>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading
           ? Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-md p-4 animate-pulse">
-                <div className="h-40 bg-gray-200 rounded-xl mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              </div>
-            ))
+            <div key={i} className="bg-white rounded-xl shadow-md p-4 animate-pulse">
+              <div className="h-40 bg-gray-200 rounded-xl mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            </div>
+          ))
           : services.length > 0
-          ? services.map((s) => (
+            ? services.map((s) => (
               <div key={s.id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition p-4">
                 <div className="relative h-40 bg-gray-100 rounded-xl overflow-hidden mb-4">
                   {s.image_url ? (
@@ -450,471 +514,634 @@ const removeTiming = (index: number, timings: string[], setTimings: Function) =>
                 </div>
               </div>
             ))
-          : (
-            <div className="col-span-full text-center py-12 text-gray-500">
-              <ImageIcon size={64} className="mx-auto mb-4 opacity-50" />
-              No services found.
-            </div>
-          )}
+            : (
+              <div className="col-span-full text-center py-12 text-gray-500">
+                <ImageIcon size={64} className="mx-auto mb-4 opacity-50" />
+                No services found.
+              </div>
+            )}
       </div>
 
       {/* ====== ADD MODAL (Horizontal Popup) ====== */}
-{addModalOpen && (
-  <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
-    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-6 flex gap-6 relative">
-      {/* Left: Form */}
-      <div className="flex-1">
-        <button
-          onClick={() => setAddModalOpen(false)}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-        >
-          ✕
-        </button>
+      {addModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 flex gap-6 relative">
+            {/* Left: Form */}
+            <div className="flex-1">
+              <button
+                onClick={() => setAddModalOpen(false)}
+                className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+              >
+                ✕
+              </button>
 
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">Add New Service</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-800">Add New Service</h2>
 
-        <form className="grid grid-cols-2 gap-4">
-          {/* Category */}
-          <div className="space-y-2">
-            <label className="block font-medium text-gray-700">Category *</label>
-            <select
-              value={serviceCategory}
-              onChange={(e) => {
-                setServiceCategory(e.target.value);
-                setServiceSubcategory(""); // Reset subcategory
-              }}
-              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-[#8ed26b]"
-            >
-              <option value="">Select Category</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+              <form className="grid grid-cols-2 gap-4">
+                {/* Category */}
+                <div className="space-y-2">
+                  <label className="block font-medium text-gray-700">Category *</label>
+                  <select
+                    value={serviceCategory}
+                    onChange={(e) => {
+                      setServiceCategory(e.target.value);
+                      setServiceSubcategory(""); // Reset subcategory
+                    }}
+                    className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-[#8ed26b]"
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Subcategory */}
+                <div className="space-y-2">
+                  <label className="block font-medium text-gray-700">Subcategory *</label>
+                  <select
+                    value={serviceSubcategory}
+                    onChange={(e) => setServiceSubcategory(e.target.value)}
+                    className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-[#8ed26b]"
+                    disabled={!serviceCategory}
+                  >
+                    <option value="">Select Subcategory</option>
+                    {subcategories
+                      .filter((sc) => sc.category === serviceCategory)
+                      .map((sc) => (
+                        <option key={sc.id} value={sc.subcategory}>
+                          {sc.subcategory}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                {/* Service Name */}
+                <div className="col-span-2 space-y-2">
+                  <label className="block font-medium text-gray-700">Service Name *</label>
+                  <input
+                    type="text"
+                    value={serviceName}
+                    onChange={(e) => setServiceName(e.target.value)}
+                    className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-[#8ed26b]"
+                  />
+                </div>
+
+                {/* Prices */}
+                <div className="space-y-2">
+                  <label className="block font-medium text-gray-700">Installation</label>
+                  <input
+                    type="number"
+                    value={installationPrice}
+                    onChange={(e) => setInstallationPrice(Number(e.target.value))}
+                    className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block font-medium text-gray-700">Dismantling</label>
+                  <input
+                    type="number"
+                    value={dismantlingPrice}
+                    onChange={(e) => setDismantlingPrice(Number(e.target.value))}
+                    className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block font-medium text-gray-700">Repair</label>
+                  <input
+                    type="number"
+                    value={repairPrice}
+                    onChange={(e) => setRepairPrice(Number(e.target.value))}
+                    className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
+                  />
+                </div>
+
+
+
+                {/* OUTER GRID */}
+                <div className="col-span-2 space-y-3">
+                  <label className="block font-medium text-gray-700">
+                    Preferred Timings
+                  </label>
+
+                  {/* RESPONSIVE COMPACT GRID */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {preferredTimings.map((time, index) => {
+                      const { start, end } = parseTimeRange(time);
+
+                      return (
+                        <div
+                          key={index}
+                          className="border rounded-xl p-2 grid grid-cols- gap-1 items-center bg-white text-sm"
+                        >
+                          {/* START */}
+                          <span className="col-span-3 text-xs font-medium text-gray-600">
+                            Start
+                          </span>
+
+                          <select
+                            value={start.hour}
+                            onChange={(e) =>
+                              updateTiming(
+                                index,
+                                buildTimeRange(
+                                  e.target.value, start.minute, start.meridiem,
+                                  end.hour, end.minute, end.meridiem
+                                ),
+                                preferredTimings,
+                                setPreferredTimings
+                              )
+                            }
+                            className="border rounded-lg px-2 py-1 text-sm"
+                          >
+                            {HOURS.map(h => (
+                              <option key={h}>{h}</option>
+                            ))}
+                          </select>
+
+                          <select
+                            value={start.minute}
+                            onChange={(e) =>
+                              updateTiming(
+                                index,
+                                buildTimeRange(
+                                  start.hour, e.target.value, start.meridiem,
+                                  end.hour, end.minute, end.meridiem
+                                ),
+                                preferredTimings,
+                                setPreferredTimings
+                              )
+                            }
+                            className="border rounded-lg px-2 py-1 text-sm"
+                          >
+                            {MINUTES.map(m => (
+                              <option key={m}>{m}</option>
+                            ))}
+                          </select>
+
+                          <select
+                            value={start.meridiem}
+                            onChange={(e) =>
+                              updateTiming(
+                                index,
+                                buildTimeRange(
+                                  start.hour, start.minute, e.target.value,
+                                  end.hour, end.minute, end.meridiem
+                                ),
+                                preferredTimings,
+                                setPreferredTimings
+                              )
+                            }
+                            className="border rounded-lg px-2 py-1 text-sm"
+                          >
+                            {MERIDIEM.map(m => (
+                              <option key={m}>{m}</option>
+                            ))}
+                          </select>
+
+                          {/* END */}
+                          <span className="col-span-3 text-xs font-medium text-gray-600 mt-1">
+                            End
+                          </span>
+
+                          <select
+                            value={end.hour}
+                            onChange={(e) =>
+                              updateTiming(
+                                index,
+                                buildTimeRange(
+                                  start.hour, start.minute, start.meridiem,
+                                  e.target.value, end.minute, end.meridiem
+                                ),
+                                preferredTimings,
+                                setPreferredTimings
+                              )
+                            }
+                            className="border rounded-lg px-2 py-1 text-sm"
+                          >
+                            {HOURS.map(h => (
+                              <option key={h}>{h}</option>
+                            ))}
+                          </select>
+
+                          <select
+                            value={end.minute}
+                            onChange={(e) =>
+                              updateTiming(
+                                index,
+                                buildTimeRange(
+                                  start.hour, start.minute, start.meridiem,
+                                  end.hour, e.target.value, end.meridiem
+                                ),
+                                preferredTimings,
+                                setPreferredTimings
+                              )
+                            }
+                            className="border rounded-lg px-2 py-1 text-sm"
+                          >
+                            {MINUTES.map(m => (
+                              <option key={m}>{m}</option>
+                            ))}
+                          </select>
+
+                          <select
+                            value={end.meridiem}
+                            onChange={(e) =>
+                              updateTiming(
+                                index,
+                                buildTimeRange(
+                                  start.hour, start.minute, start.meridiem,
+                                  end.hour, end.minute, e.target.value
+                                ),
+                                preferredTimings,
+                                setPreferredTimings
+                              )
+                            }
+                            className="border rounded-lg px-2 py-1 text-sm"
+                          >
+                            {MERIDIEM.map(m => (
+                              <option key={m}>{m}</option>
+                            ))}
+                          </select>
+
+                          {/* REMOVE */}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeTiming(index, preferredTimings, setPreferredTimings)
+                            }
+                            className="col-span-3 mt-1 px-1 py-1 text-xs bg-red-500 text-white rounded-lg"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* ADD BUTTON */}
+                  <button
+                    type="button"
+                    onClick={() => addTiming(preferredTimings, setPreferredTimings)}
+                    className="px-4 py-2 bg-[#8ed26b] text-white rounded-xl hover:bg-[#6ebb53] transition"
+                  >
+                    + Add Timing
+                  </button>
+                </div>
+
+
+              </form>
+            </div>
+            {/* Right: Image Upload & Submit */}
+            <div className="w-64 flex-shrink-0 flex flex-col items-center justify-start">
+              <label className="block font-medium text-gray-700 mb-2">Image</label>
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-[#8ed26b] transition bg-gray-50 w-full"
+                onClick={() => document.getElementById("add-image-input")?.click()}
+              >
+                <Upload className="mx-auto mb-2 text-gray-400" size={32} />
+                <p className="text-gray-600">Click to upload</p>
+                <p className="text-sm text-gray-500">PNG, JPG up to 5MB</p>
+                <input
+                  id="add-image-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    setServiceImage(file || null);
+                    if (file) setPreview(URL.createObjectURL(file));
+                  }}
+                  className="hidden"
+                />
+              </div>
+
+              {preview && (
+                <img
+                  src={preview}
+                  alt="preview"
+                  className="mt-4 w-40 h-40 object-cover rounded-xl border"
+                />
+              )}
+
+              <button
+                type="button"
+                onClick={handleAddService}
+                disabled={submitting}
+                className="mt-4 w-full bg-[#8ed26b] text-white py-2 rounded-xl font-semibold hover:bg-[#6ebb53] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {submitting ? "Adding..." : "Add Service"}
+              </button>
+            </div>
           </div>
-
-          {/* Subcategory */}
-          <div className="space-y-2">
-            <label className="block font-medium text-gray-700">Subcategory *</label>
-            <select
-              value={serviceSubcategory}
-              onChange={(e) => setServiceSubcategory(e.target.value)}
-              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-[#8ed26b]"
-              disabled={!serviceCategory}
-            >
-              <option value="">Select Subcategory</option>
-              {subcategories
-                .filter((sc) => sc.category === serviceCategory)
-                .map((sc) => (
-                  <option key={sc.id} value={sc.subcategory}>
-                    {sc.subcategory}
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          {/* Service Name */}
-          <div className="col-span-2 space-y-2">
-            <label className="block font-medium text-gray-700">Service Name *</label>
-            <input
-              type="text"
-              value={serviceName}
-              onChange={(e) => setServiceName(e.target.value)}
-              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-[#8ed26b]"
-            />
-          </div>
-
-          {/* Prices */}
-          <div className="space-y-2">
-            <label className="block font-medium text-gray-700">Installation</label>
-            <input
-              type="number"
-              value={installationPrice}
-              onChange={(e) => setInstallationPrice(Number(e.target.value))}
-              className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="block font-medium text-gray-700">Dismantling</label>
-            <input
-              type="number"
-              value={dismantlingPrice}
-              onChange={(e) => setDismantlingPrice(Number(e.target.value))}
-              className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="block font-medium text-gray-700">Repair</label>
-            <input
-              type="number"
-              value={repairPrice}
-              onChange={(e) => setRepairPrice(Number(e.target.value))}
-              className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
-            />
-          </div>
-<div className="col-span-2 space-y-3">
-  <label className="block font-medium text-gray-700">Preferred Timings</label>
-  <div className="space-y-2">
-   {preferredTimings.map((time, index) => {
-  const { hour, minute, meridiem } = parseTime(time);
-
-  return (
-    <div key={index} className="flex gap-2 items-center">
-      <select
-        value={hour}
-        onChange={(e) =>
-          updateTiming(
-            index,
-            buildTime(e.target.value, minute, meridiem),
-            preferredTimings,
-            setPreferredTimings
-          )
-        }
-        className="border rounded-xl p-2"
-      >
-        {HOURS.map(h => <option key={h}>{h}</option>)}
-      </select>
-
-      <select
-        value={minute}
-        onChange={(e) =>
-          updateTiming(
-            index,
-            buildTime(hour, e.target.value, meridiem),
-            preferredTimings,
-            setPreferredTimings
-          )
-        }
-        className="border rounded-xl p-2"
-      >
-        {MINUTES.map(m => <option key={m}>{m}</option>)}
-      </select>
-
-      <select
-        value={meridiem}
-        onChange={(e) =>
-          updateTiming(
-            index,
-            buildTime(hour, minute, e.target.value),
-            preferredTimings,
-            setPreferredTimings
-          )
-        }
-        className="border rounded-xl p-2"
-      >
-        {MERIDIEM.map(m => <option key={m}>{m}</option>)}
-      </select>
-
-      <button
-        type="button"
-        onClick={() => removeTiming(index, preferredTimings, setPreferredTimings)}
-        className="px-3 py-1 bg-red-500 text-white rounded-xl"
-      >
-        ✕
-      </button>
-    </div>
-  );
-})}
-
-    <button
-      type="button"
-      onClick={() => addTiming(preferredTimings, setPreferredTimings)}
-      className="px-4 py-2 bg-[#8ed26b] text-white rounded-xl hover:bg-[#6ebb53] transition"
-    >
-      + Add Timing
-    </button>
-  </div>
-</div>
-
-
-
-        </form>
-      </div>
-
-      {/* Right: Image Upload & Submit */}
-      <div className="w-64 flex-shrink-0 flex flex-col items-center justify-start">
-        <label className="block font-medium text-gray-700 mb-2">Image</label>
-        <div
-          className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-[#8ed26b] transition bg-gray-50 w-full"
-          onClick={() => document.getElementById("add-image-input")?.click()}
-        >
-          <Upload className="mx-auto mb-2 text-gray-400" size={32} />
-          <p className="text-gray-600">Click to upload</p>
-          <p className="text-sm text-gray-500">PNG, JPG up to 5MB</p>
-          <input
-            id="add-image-input"
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              setServiceImage(file || null);
-              if (file) setPreview(URL.createObjectURL(file));
-            }}
-            className="hidden"
-          />
         </div>
-
-        {preview && (
-          <img
-            src={preview}
-            alt="preview"
-            className="mt-4 w-40 h-40 object-cover rounded-xl border"
-          />
-        )}
-
-        <button
-          type="button"
-          onClick={handleAddService}
-          disabled={submitting}
-          className="mt-4 w-full bg-[#8ed26b] text-white py-2 rounded-xl font-semibold hover:bg-[#6ebb53] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          {submitting ? "Adding..." : "Add Service"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
 
       {/* ====== EDIT MODAL INLINE ====== */}
-     {/* ====== EDIT MODAL (Horizontal Popup) ====== */}
-{editModalOpen && editItem && (
-  <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
-    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-6 relative flex gap-6">
-      {/* Left: Form */}
-      <div className="flex-1">
-        <button
-          onClick={() => setEditModalOpen(false)}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-        >
-          ✕
-        </button>
+      {/* ====== EDIT MODAL (Horizontal Popup) ====== */}
+      {editModalOpen && editItem && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 flex gap-6 relative">
+            {/* Left: Form */}
+            <div className="flex-1">
+              <button
+                onClick={() => setEditModalOpen(false)}
+                className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+              >
+                ✕
+              </button>
 
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">Edit Service</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-800">Edit Service</h2>
 
-        <form className="grid grid-cols-2 gap-4">
-          {/* Category */}
-          <div className="space-y-2">
-            <label className="block font-medium text-gray-700">Category *</label>
-            <select
-              value={editItem.category}
-              onChange={(e) =>
-                setEditItem({ ...editItem, category: e.target.value, subcategory: "" })
-              }
-              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-[#8ed26b]"
-            >
-              <option value="">Select Category</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+              <form className="grid grid-cols-2 gap-4">
+                {/* Category */}
+                <div className="space-y-2">
+                  <label className="block font-medium text-gray-700">Category *</label>
+                  <select
+                    value={editItem.category}
+                    onChange={(e) =>
+                      setEditItem({ ...editItem, category: e.target.value, subcategory: "" })
+                    }
+                    className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-[#8ed26b]"
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Subcategory */}
+                <div className="space-y-2">
+                  <label className="block font-medium text-gray-700">Subcategory *</label>
+                  <select
+                    value={editItem.subcategory}
+                    onChange={(e) => setEditItem({ ...editItem, subcategory: e.target.value })}
+                    className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-[#8ed26b]"
+                    disabled={!editItem.category}
+                  >
+                    <option value="">Select Subcategory</option>
+                    {subcategories
+                      .filter((sc) => sc.category === editItem.category)
+                      .map((sc) => (
+                        <option key={sc.id} value={sc.subcategory}>
+                          {sc.subcategory}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                {/* Service Name */}
+                <div className="col-span-2 space-y-2">
+                  <label className="block font-medium text-gray-700">Service Name *</label>
+                  <input
+                    type="text"
+                    value={editItem.service_name}
+                    onChange={(e) => setEditItem({ ...editItem, service_name: e.target.value })}
+                    className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-[#8ed26b]"
+                  />
+                </div>
+
+                {/* Prices */}
+                <div className="space-y-2">
+                  <label className="block font-medium text-gray-700">Installation</label>
+                  <input
+                    type="number"
+                    value={editItem.installation_price || ""}
+                    onChange={(e) =>
+                      setEditItem({ ...editItem, installation_price: Number(e.target.value) })
+                    }
+                    className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block font-medium text-gray-700">Dismantling</label>
+                  <input
+                    type="number"
+                    value={editItem.dismantling_price || ""}
+                    onChange={(e) =>
+                      setEditItem({ ...editItem, dismantling_price: Number(e.target.value) })
+                    }
+                    className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block font-medium text-gray-700">Repair</label>
+                  <input
+                    type="number"
+                    value={editItem.repair_price || ""}
+                    onChange={(e) =>
+                      setEditItem({ ...editItem, repair_price: Number(e.target.value) })
+                    }
+                    className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
+                  />
+                </div>
+                <div className="col-span-2 space-y-3">
+                  <label className="block font-medium text-gray-700">
+                    Preferred Timings
+                  </label>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {editPreferredTimings.map((time, index) => {
+                      const { start, end } = parseTimeRange(time);
+
+                      return (
+                        <div
+                          key={index}
+                          className="border rounded-xl p-2 grid grid-cols- gap-1 items-center bg-white text-sm"
+                        >
+                          {/* START */}
+                          <span className="col-span-3 text-xs font-medium text-gray-600">
+                            Start
+                          </span>
+
+                          <select
+                            value={start.hour}
+                            onChange={(e) =>
+                              updateTiming(
+                                index,
+                                buildTimeRange(
+                                  e.target.value, start.minute, start.meridiem,
+                                  end.hour, end.minute, end.meridiem
+                                ),
+                                editPreferredTimings,
+                                setEditPreferredTimings
+                              )
+                            }
+                            className="border rounded-lg px-2 py-1"
+                          >
+                            {HOURS.map(h => <option key={h}>{h}</option>)}
+                          </select>
+
+                          <select
+                            value={start.minute}
+                            onChange={(e) =>
+                              updateTiming(
+                                index,
+                                buildTimeRange(
+                                  start.hour, e.target.value, start.meridiem,
+                                  end.hour, end.minute, end.meridiem
+                                ),
+                                editPreferredTimings,
+                                setEditPreferredTimings
+                              )
+                            }
+                            className="border rounded-lg px-2 py-1"
+                          >
+                            {MINUTES.map(m => <option key={m}>{m}</option>)}
+                          </select>
+
+                          <select
+                            value={start.meridiem}
+                            onChange={(e) =>
+                              updateTiming(
+                                index,
+                                buildTimeRange(
+                                  start.hour, start.minute, e.target.value,
+                                  end.hour, end.minute, end.meridiem
+                                ),
+                                editPreferredTimings,
+                                setEditPreferredTimings
+                              )
+                            }
+                            className="border rounded-lg px-2 py-1"
+                          >
+                            {MERIDIEM.map(m => <option key={m}>{m}</option>)}
+                          </select>
+
+                          {/* END */}
+                          <span className="col-span-3 text-xs font-medium text-gray-600">
+                            End
+                          </span>
+
+                          <select
+                            value={end.hour}
+                            onChange={(e) =>
+                              updateTiming(
+                                index,
+                                buildTimeRange(
+                                  start.hour, start.minute, start.meridiem,
+                                  e.target.value, end.minute, end.meridiem
+                                ),
+                                editPreferredTimings,
+                                setEditPreferredTimings
+                              )
+                            }
+                            className="border rounded-lg px-2 py-1"
+                          >
+                            {HOURS.map(h => <option key={h}>{h}</option>)}
+                          </select>
+
+                          <select
+                            value={end.minute}
+                            onChange={(e) =>
+                              updateTiming(
+                                index,
+                                buildTimeRange(
+                                  start.hour, start.minute, start.meridiem,
+                                  end.hour, e.target.value, end.meridiem
+                                ),
+                                editPreferredTimings,
+                                setEditPreferredTimings
+                              )
+                            }
+                            className="border rounded-lg px-2 py-1"
+                          >
+                            {MINUTES.map(m => <option key={m}>{m}</option>)}
+                          </select>
+
+                          <select
+                            value={end.meridiem}
+                            onChange={(e) =>
+                              updateTiming(
+                                index,
+                                buildTimeRange(
+                                  start.hour, start.minute, start.meridiem,
+                                  end.hour, end.minute, e.target.value
+                                ),
+                                editPreferredTimings,
+                                setEditPreferredTimings
+                              )
+                            }
+                            className="border rounded-lg px-2 py-1"
+                          >
+                            {MERIDIEM.map(m => <option key={m}>{m}</option>)}
+                          </select>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeTiming(index, editPreferredTimings, setEditPreferredTimings)
+                            }
+                            className="col-span-3 mt-1 px-1 py-1 text-xs bg-red-500 text-white rounded-lg"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => addTiming(editPreferredTimings, setEditPreferredTimings)}
+                    className="px-4 py-2 bg-[#8ed26b] text-white rounded-xl hover:bg-[#6ebb53] transition"
+                  >
+                    + Add Timing
+                  </button>
+                </div>
+
+              </form>
+            </div>
+
+            {/* Right: Image Upload */}
+            <div className="w-60 flex-shrink-0 flex flex-col items-center justify-start">
+              <label className="block font-medium text-gray-700 mb-2">Image</label>
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-[#8ed26b] transition bg-gray-50 w-full"
+                onClick={() => document.getElementById("edit-image-input")?.click()}
+              >
+                <Upload className="mx-auto mb-2 text-gray-400" size={32} />
+                <p className="text-gray-600">Click to upload</p>
+                <p className="text-sm text-gray-500">PNG, JPG up to 5MB</p>
+                <input
+                  id="edit-image-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    setImageFile(file || null);
+                    if (file) setPreview(URL.createObjectURL(file));
+                  }}
+                  className="hidden"
+                />
+              </div>
+              {preview && (
+                <img
+                  src={preview}
+                  alt="preview"
+                  className="mt-4 w-40 h-40 object-cover rounded-xl border"
+                />
+              )}
+
+              {/* Submit Button */}
+              <button
+                type="button"
+                onClick={handleUpdateService}
+                disabled={submitting || !hasChanges()}
+                className="mt-4 w-full bg-[#8ed26b] text-white py-2 rounded-xl font-semibold hover:bg-[#6ebb53] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {submitting ? "Updating..." : "Update Service"}
+              </button>
+            </div>
           </div>
-
-          {/* Subcategory */}
-          <div className="space-y-2">
-            <label className="block font-medium text-gray-700">Subcategory *</label>
-            <select
-              value={editItem.subcategory}
-              onChange={(e) => setEditItem({ ...editItem, subcategory: e.target.value })}
-              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-[#8ed26b]"
-              disabled={!editItem.category}
-            >
-              <option value="">Select Subcategory</option>
-              {subcategories
-                .filter((sc) => sc.category === editItem.category)
-                .map((sc) => (
-                  <option key={sc.id} value={sc.subcategory}>
-                    {sc.subcategory}
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          {/* Service Name */}
-          <div className="col-span-2 space-y-2">
-            <label className="block font-medium text-gray-700">Service Name *</label>
-            <input
-              type="text"
-              value={editItem.service_name}
-              onChange={(e) => setEditItem({ ...editItem, service_name: e.target.value })}
-              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-[#8ed26b]"
-            />
-          </div>
-
-          {/* Prices */}
-          <div className="space-y-2">
-            <label className="block font-medium text-gray-700">Installation</label>
-            <input
-              type="number"
-              value={editItem.installation_price || ""}
-              onChange={(e) =>
-                setEditItem({ ...editItem, installation_price: Number(e.target.value) })
-              }
-              className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="block font-medium text-gray-700">Dismantling</label>
-            <input
-              type="number"
-              value={editItem.dismantling_price || ""}
-              onChange={(e) =>
-                setEditItem({ ...editItem, dismantling_price: Number(e.target.value) })
-              }
-              className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="block font-medium text-gray-700">Repair</label>
-            <input
-              type="number"
-              value={editItem.repair_price || ""}
-              onChange={(e) =>
-                setEditItem({ ...editItem, repair_price: Number(e.target.value) })
-              }
-              className="w-full border rounded-xl p-2 focus:ring-2 focus:ring-[#8ed26b]"
-            />
-          </div>
-<div className="col-span-2 space-y-3">
-  <label className="block font-medium text-gray-700">Preferred Timings</label>
-  <div className="space-y-2">
-    {editPreferredTimings.length === 0 && (
-      <p className="text-sm text-gray-500">No timings added yet. Click below to add.</p>
-    )}
-
-    {editPreferredTimings.map((time, index) => {
-  const { hour, minute, meridiem } = parseTime(time);
-
-  return (
-    <div key={index} className="flex gap-2 items-center">
-      {/* Hour */}
-      <select
-        value={hour}
-        onChange={(e) =>
-          updateTiming(
-            index,
-            buildTime(e.target.value, minute, meridiem),
-            editPreferredTimings,
-            setEditPreferredTimings
-          )
-        }
-        className="border rounded-xl p-2"
-      >
-        {HOURS.map(h => (
-          <option key={h} value={h}>{h}</option>
-        ))}
-      </select>
-
-      {/* Minute (5-min gap) */}
-      <select
-        value={minute}
-        onChange={(e) =>
-          updateTiming(
-            index,
-            buildTime(hour, e.target.value, meridiem),
-            editPreferredTimings,
-            setEditPreferredTimings
-          )
-        }
-        className="border rounded-xl p-2"
-      >
-        {MINUTES.map(m => (
-          <option key={m} value={m}>{m}</option>
-        ))}
-      </select>
-
-      {/* AM / PM */}
-      <select
-        value={meridiem}
-        onChange={(e) =>
-          updateTiming(
-            index,
-            buildTime(hour, minute, e.target.value),
-            editPreferredTimings,
-            setEditPreferredTimings
-          )
-        }
-        className="border rounded-xl p-2"
-      >
-        {MERIDIEM.map(m => (
-          <option key={m} value={m}>{m}</option>
-        ))}
-      </select>
-
-      {/* Remove */}
-      <button
-        type="button"
-        onClick={() =>
-          removeTiming(index, editPreferredTimings, setEditPreferredTimings)
-        }
-        className="px-3 py-1 bg-red-500 text-white rounded-xl"
-      >
-        ✕
-      </button>
-    </div>
-  );
-})}
-
-        
-    <button
-      type="button"
-      onClick={() => addTiming(editPreferredTimings, setEditPreferredTimings)}
-      className="px-4 py-2 bg-[#8ed26b] text-white rounded-xl hover:bg-[#6ebb53] transition"
-    >
-      + Add Timing
-    </button>
-  </div>
-</div>
-
-        </form>
-      </div>
-
-      {/* Right: Image Upload */}
-      <div className="w-60 flex-shrink-0 flex flex-col items-center justify-start">
-        <label className="block font-medium text-gray-700 mb-2">Image</label>
-        <div
-          className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-[#8ed26b] transition bg-gray-50 w-full"
-          onClick={() => document.getElementById("edit-image-input")?.click()}
-        >
-          <Upload className="mx-auto mb-2 text-gray-400" size={32} />
-          <p className="text-gray-600">Click to upload</p>
-          <p className="text-sm text-gray-500">PNG, JPG up to 5MB</p>
-          <input
-            id="edit-image-input"
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              setImageFile(file || null);
-              if (file) setPreview(URL.createObjectURL(file));
-            }}
-            className="hidden"
-          />
         </div>
-        {preview && (
-          <img
-            src={preview}
-            alt="preview"
-            className="mt-4 w-40 h-40 object-cover rounded-xl border"
-          />
-        )}
-
-        {/* Submit Button */}
-        <button
-          type="button"
-          onClick={handleUpdateService}
-          disabled={submitting || !hasChanges()}
-          className="mt-4 w-full bg-[#8ed26b] text-white py-2 rounded-xl font-semibold hover:bg-[#6ebb53] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          {submitting ? "Updating..." : "Update Service"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
 
       {/* ====== DELETE MODAL INLINE ====== */}

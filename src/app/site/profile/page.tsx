@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { Loader2, User as UserIcon, Mail, Save, AlertTriangle, CheckCircle, Edit, Phone, MapPin, Building2 } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
 // --- Configuration ---
 const PRIMARY_COLOR = "#8ED26B";

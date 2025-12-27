@@ -77,22 +77,22 @@ const SLIDES_DATA: Slide[] = [
   {
     id: 1,
     img: "/pi.jpg",
-    title: "Explore Our Services",
-    subtitle: "Professional, Reliable, and Hassle-Free Solutions",
+    title: "What We Offer",
+    subtitle: "Trusted, professional services designed for your convenience.",
     cta: { text: "Services", href: "/site/services" },
   },
   {
     id: 2,
     img: "/pi2.jpg",
-    title: "Learn About Us",
-    subtitle: "Know More About Our Expertise and Values",
+    title: "Who We Are",
+    subtitle: "Driven by expertise, guided by strong values, and committed to excellence.",
     cta: { text: "About Us", href: "/site/about" },
   },
   {
     id: 3,
     img: "/banner4.jpg",
-    title: ".",
-    subtitle: ".",
+    title: "Get in Touch",
+    subtitle: "Reach out to us for service bookings, support, or general inquiries.",
     cta: { text: "Contact Us", href: "/site/contact" },
   },
 ];
@@ -131,21 +131,31 @@ const WHY_CHOOSE_US_DATA: WhyChooseUsItem[] = [
 const FAQ_DATA: FAQItem[] = [
   {
     question: "How do I book an installation service?",
-    answer: "You can book directly through our 'Services' page. Simply select the type of service (e.g., Installation), find your furniture type, and follow the steps to schedule a time and location.",
+    answer:
+      "You can book directly through our 'Services' page. Simply select the type of service (e.g., Installation), find your furniture type, and follow the steps to schedule a time and location.",
   },
   {
     question: "What areas do your services cover?",
-    answer: "We currently cover all major metropolitan areas and surrounding suburbs. Please enter your zip code during the booking process to confirm service availability in your specific location.",
+    answer:
+      "We currently cover all major metropolitan areas and surrounding suburbs. Please enter your zip code during the booking process to confirm service availability in your specific location.",
   },
   {
     question: "Are your technicians certified?",
-    answer: "Yes, all our technicians are fully certified, trained, and insured. They specialize in a wide range of furniture assembly and home repair tasks, ensuring high-quality results every time.",
+    answer:
+      "Yes, all our technicians are fully certified, trained, and insured. They specialize in a wide range of furniture assembly and home repair tasks, ensuring high-quality results every time.",
   },
   {
     question: "Do you provide warranty or service guarantee?",
-    answer: "Yes, we ensure service quality and customer satisfaction. Any service-related concerns can be raised with our support team for quick resolution.",
+    answer:
+      "Yes, we ensure service quality and customer satisfaction. Any service-related concerns can be raised with our support team for quick resolution.",
+  },
+  {
+    question: "How do I cancel or reschedule?",
+    answer:
+      "You can cancel or reschedule your booking by contacting our support team at least 2 hours before the scheduled service time.",
   },
 ];
+
 
 // ====================================================================
 // 3. SUBCATEGORY CARD SUB-COMPONENT (Inline)
@@ -314,8 +324,8 @@ const HeroCarousel: React.FC<{ slides: Slide[] }> = ({ slides }) => {
             key={i}
             onClick={() => goToSlide(i)}
             className={`h-3 rounded-full transition-all ${currentSlide === i
-                ? "w-8 sm:w-10 shadow-xl bg-instafitcore-green"
-                : "w-3 opacity-70 bg-instafitcore-green/50"
+              ? "w-8 sm:w-10 shadow-xl bg-instafitcore-green"
+              : "w-3 opacity-70 bg-instafitcore-green/50"
               }`}
             aria-label={`Go to slide ${i + 1}`}
             aria-current={currentSlide === i ? 'true' : 'false'}
@@ -738,7 +748,7 @@ export default function HomePage() {
               </div>
               <div className="p-5 text-center">
                 <h3 className="text-xl font-bold text-gray-800">Installation</h3>
-                <p className="text-sm text-gray-500 mt-1">Quick assembly and setup.</p>
+                <p className="text-sm text-gray-500 mt-1">Professional assembly and installation of beds, wardrobes, sofas, cabinets, and more.</p>
               </div>
             </Link>
 
@@ -758,7 +768,7 @@ export default function HomePage() {
               </div>
               <div className="p-5 text-center">
                 <h3 className="text-xl font-bold text-gray-800">Dismantling</h3>
-                <p className="text-sm text-gray-500 mt-1">Safe and efficient disassembly.</p>
+                <p className="text-sm text-gray-500 mt-1">Safe and systematic dismantling of furniture for relocation, storage, or repairs.</p>
               </div>
             </Link>
 
@@ -778,7 +788,7 @@ export default function HomePage() {
               </div>
               <div className="p-5 text-center">
                 <h3 className="text-xl font-bold text-gray-800">Repair</h3>
-                <p className="text-sm text-gray-500 mt-1">Restoration and fixing services.</p>
+                <p className="text-sm text-gray-500 mt-1">Repair and restoration services to improve strength, functionality, and appearance.</p>
               </div>
             </Link>
           </div>
@@ -787,64 +797,64 @@ export default function HomePage() {
 
       <hr className="max-w-6xl mx-auto border-gray-200" />
 
-  {/* --- PARTNERSHIP SECTION --- */}
-<section className="py-12 sm:py-20 bg-gradient-to-b from-gray-50 to-white">
-  <div className="max-w-5xl mx-auto px-6 text-center">
+      {/* --- PARTNERSHIP SECTION --- */}
+      <section className="py-12 sm:py-20 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-5xl mx-auto px-6 text-center">
 
-    {/* Heading */}
-    <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
-      Our Trusted Partners
-    </h2>
-    <p className="text-gray-600 text-base sm:text-lg mb-8 sm:mb-12 max-w-2xl mx-auto">
-      We proudly collaborate with industry-leading companies to bring you reliable and high-quality services.
-    </p>
+          {/* Heading */}
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
+            Our Trusted Partners
+          </h2>
+          <p className="text-gray-600 text-base sm:text-lg mb-8 sm:mb-12 max-w-2xl mx-auto">
+            We proudly collaborate with industry-leading companies to bring you reliable and high-quality services.
+          </p>
 
-    {/* Partner Cards Grid */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center">
+          {/* Partner Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center">
 
-      {/* SimplyLogistics */}
-      <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 max-w-xs sm:max-w-sm w-full">
-        <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto rounded-xl bg-gray-50 flex items-center justify-center border border-gray-200 shadow-inner overflow-hidden">
-          <Image
-            src="/simplylogistics-logo.jpeg"
-            alt="Simply Logistics Logo"
-            width={160}
-            height={160}
-            className="object-contain p-4"
-          />
+            {/* SimplyLogistics */}
+            <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 max-w-xs sm:max-w-sm w-full">
+              <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto rounded-xl bg-gray-50 flex items-center justify-center border border-gray-200 shadow-inner overflow-hidden">
+                <Image
+                  src="/simplylogistics-logo.jpeg"
+                  alt="Simply Logistics Logo"
+                  width={160}
+                  height={160}
+                  className="object-contain p-4"
+                />
+              </div>
+              <div className="mt-6">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800">SimplyLogistics</h3>
+                <p className="text-gray-500 mt-1">Logistics and Supply Chain</p>
+                <span className="inline-block mt-4 bg-instafitcore-green/20 text-instafitcore-green text-sm font-semibold px-4 py-1.5 rounded-full border border-instafitcore-green">
+                  Verified Partner
+                </span>
+              </div>
+            </div>
+
+            {/* Rakvih */}
+            <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 max-w-xs sm:max-w-sm w-full">
+              <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto rounded-xl bg-gray-50 flex items-center justify-center border border-gray-200 shadow-inner overflow-hidden">
+                <Image
+                  src="/rakvih.jpeg"
+                  alt="Rakvih Logo"
+                  width={160}
+                  height={160}
+                  className="object-contain p-4"
+                />
+              </div>
+              <div className="mt-6">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800">Rakvih</h3>
+                <p className="text-gray-500 mt-1">Digital and IT Solutions</p>
+                <span className="inline-block mt-4 bg-instafitcore-green/20 text-instafitcore-green text-sm font-semibold px-4 py-1.5 rounded-full border border-instafitcore-green">
+                  Verified Partner
+                </span>
+              </div>
+            </div>
+
+          </div>
         </div>
-        <div className="mt-6">
-          <h3 className="text-xl sm:text-2xl font-bold text-gray-800">SimplyLogistics</h3>
-          <p className="text-gray-500 mt-1">Logistics and Supply Chain</p>
-          <span className="inline-block mt-4 bg-instafitcore-green/20 text-instafitcore-green text-sm font-semibold px-4 py-1.5 rounded-full border border-instafitcore-green">
-            Verified Partner
-          </span>
-        </div>
-      </div>
-
-      {/* Rakvih */}
-      <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 max-w-xs sm:max-w-sm w-full">
-        <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto rounded-xl bg-gray-50 flex items-center justify-center border border-gray-200 shadow-inner overflow-hidden">
-          <Image
-            src="/rakvih.jpeg"
-            alt="Rakvih Logo"
-            width={160}
-            height={160}
-            className="object-contain p-4"
-          />
-        </div>
-        <div className="mt-6">
-          <h3 className="text-xl sm:text-2xl font-bold text-gray-800">Rakvih</h3>
-          <p className="text-gray-500 mt-1">Digital and IT Solutions</p>
-          <span className="inline-block mt-4 bg-instafitcore-green/20 text-instafitcore-green text-sm font-semibold px-4 py-1.5 rounded-full border border-instafitcore-green">
-            Verified Partner
-          </span>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
+      </section>
 
 
       {/* --- NEW: WHY INSTAFITCORE SECTION --- */}

@@ -1,0 +1,44 @@
+Step 1: Enable 2-Step Verification
+
+Go to your Google Account: https://myaccount.google.com/security
+
+Scroll to “Signing in to Google”.
+
+Find 2-Step Verification and click “Turn on” (or “Manage” if already on).
+
+Follow the steps:
+
+Add your phone number for verification.
+
+Choose your verification method (SMS or Google Prompt).
+
+Once completed, 2-Step Verification is active.
+
+✅ This is required because Gmail will not allow App Passwords without 2FA.
+
+Step 2: Generate an App Password
+
+After 2FA is enabled, go to App Passwords directly: https://myaccount.google.com/apppasswords
+
+If prompted, sign in again to verify.
+
+Under “Select app”, choose Mail.
+
+Under “Select device”, choose Other (Custom name).
+
+Give it a name like NextJS Contact Form.
+
+Click Generate.
+
+Google will show a 16-character password (no spaces).
+
+Example: bggczskslcpesyvq
+
+Copy this password — this is your EMAIL_PASS.
+
+Step 3: Add to .env
+
+Create a .env file in your Next.js project:
+
+EMAIL_USER=vyshnavivgowda@gmail.com
+EMAIL_PASS=bggczskslcpesyvq

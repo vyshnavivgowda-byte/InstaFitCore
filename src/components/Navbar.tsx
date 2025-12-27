@@ -463,20 +463,23 @@ export default function FullNavbar() {
                     </p>
                   </Link>
 
+
                   {/* Hover Dropdown for Sub Services */}
                   {item.subServices && item.subServices.length > 0 && (
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-64 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto scale-95 group-hover:scale-100 transform transition-all duration-300 z-50">
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-64 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto scale-95 group-hover:scale-100 transform transition-all duration-300 z-50 hidden md:block">
                       {/* The white box container */}
                       <div className="bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden">
                         <div className="px-4 py-3">
                           <ul className="text-gray-700 text-sm space-y-2">
                             {item.subServices.map((sub, idx) => (
-                              <li
-                                key={idx}
-                                className="hover:text-[#8ed26b] cursor-pointer transition-colors flex items-start gap-2"
-                              >
-                                <span className="text-[#8ed26b]">•</span>
-                                <span>{sub}</span>
+                              <li key={idx}>
+                                <Link
+                                  href={item.link} // Navigate to the same page as the parent category
+                                  className="hover:text-[#8ed26b] cursor-pointer transition-colors flex items-start gap-2"
+                                >
+                                  <span className="text-[#8ed26b]">•</span>
+                                  <span>{sub}</span>
+                                </Link>
                               </li>
                             ))}
                           </ul>
@@ -484,6 +487,7 @@ export default function FullNavbar() {
                       </div>
                     </div>
                   )}
+
                 </div>
               ))}
             </div>
