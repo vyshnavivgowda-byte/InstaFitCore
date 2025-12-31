@@ -8,7 +8,7 @@ import { X, Star, User } from "lucide-react";
 // where the ServiceReview type is defined/exported:
 // If ServiceDetailsPage.tsx is at src/app/site/services/[id]/page.tsx
 // and this modal is at src/components/ReviewModal.tsx, this relative path is likely correct:
-import { ServiceReview } from "@/app/site/services/[id]/page"; 
+import { ServiceReview, ServiceItem, Subcategory } from "@/types/service";
 
 
 // Component to render star ratings within the modal

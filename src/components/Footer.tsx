@@ -10,7 +10,7 @@ export default function Footer() {
     <footer className="bg-gray-900 text-gray-300 pt-20 pb-10 mt-20 border-t border-gray-800 shadow-2xl">
       <div className="max-w-7xl mx-auto px-6">
 
-        {/* --- MAIN GRID (Top Section) --- */}
+        {/* --- MAIN GRID (Middle Section) --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-16 mb-16">
 
           {/* --- 1. COMPANY INFO --- */}
@@ -57,8 +57,14 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* --- 4. CONTACT INFO --- */}
+          {/* --- 4. MORE INFO + GET IN TOUCH --- */}
           <div>
+            <h5 className="text-white text-xl font-bold mb-5 border-b border-gray-700 pb-2">More Info</h5>
+            <ul className="space-y-3 text-gray-400 text-sm mb-6">
+              <li><a href="/site/terms" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Terms & Conditions</a></li>
+              <li><a href="/site/privacy" className="hover:text-instafitcore-green transition-colors hover:pl-2 block">» Privacy Policy</a></li>
+            </ul>
+
             <h5 className="text-white text-xl font-bold mb-5 border-b border-gray-700 pb-2">Get in Touch</h5>
             <div className="space-y-4 text-sm">
               <p className="flex items-start gap-3">
@@ -71,7 +77,7 @@ export default function Footer() {
               <p className="flex items-start gap-3">
                 <Phone className="w-5 h-5 shrink-0 text-instafitcore-green" />
                 <span>
-                  <span className="font-semibold text-gray-100">Toll Free:</span><br />
+                  <span className="font-semibold text-gray-100">Contact:</span><br />
                   +91 7411443233
                 </span>
               </p>
@@ -102,14 +108,15 @@ export default function Footer() {
       </div>
 
       {/* Footer Bottom */}
-      <div className="border-t border-gray-800 mt-16 pt-8">
-        <p className="text-center text-xs text-gray-500 leading-relaxed px-6">
+      <div className="border-t border-gray-800 mt-16 pt-8 flex flex-col md:flex-row justify-center items-center gap-4 text-xs text-gray-500 px-6">
+        <p className="text-center md:ml-4">
           You are receiving this email because a login attempt was made on your InstaFitCore account.
           <br />
           © {new Date().getFullYear()} InstaFitCore Solutions Private Limited. All rights reserved.
         </p>
-        <p className="text-center text-xs text-gray-500 leading-relaxed px-6">
-          Note: Designed and Developed by{' '}
+
+        <p className="text-center md:ml-4">
+          Designed and Developed by{' '}
           <a href="https://rakvih.in" target="_blank" rel="noopener noreferrer" className="text-instafitcore-green hover:underline font-semibold">
             Rakvih
           </a>

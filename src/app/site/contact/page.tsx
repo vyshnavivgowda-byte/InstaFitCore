@@ -84,12 +84,12 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* HERO */}
-      <section className="relative h-64 sm:h-72 md:h-80 bg-instafitcore-green flex items-center justify-center text-center px-4">
+      <section className="relative h-48 sm:h-56 md:h-64 bg-instafitcore-green flex items-center justify-center text-center px-4">
         <div className="max-w-2xl">
           <p className="text-white text-sm sm:text-base md:text-lg font-semibold uppercase tracking-wide mb-2">
             Ready to Connect?
           </p>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-snug">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-snug">
             Let's Talk
           </h1>
         </div>
@@ -97,11 +97,11 @@ export default function ContactPage() {
 
 
       {/* MAIN CONTENT */}
-      <section className="py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <section className="py-8 md:py-16">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
           {/* CONTACT INFO */}
-          <div className="space-y-8">
-            <h2 className="text-3xl font-bold text-instafitcore-green">Contact Details</h2>
+          <div className="space-y-6 md:space-y-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-instafitcore-green">Contact Details</h2>
             <p className="text-gray-700">
               Need immediate assistance? Reach us through any of the channels below.
             </p>
@@ -133,14 +133,14 @@ export default function ContactPage() {
           </div>
 
           {/* ENQUIRY FORM */}
-          <div className="lg:col-span-2 bg-white p-8 md:p-10 rounded-3xl shadow-lg border border-gray-100">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Send an Enquiry</h2>
+          <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-lg border border-gray-100">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6">Send an Enquiry</h2>
             {success && (
-              <div className="mb-6 p-4 bg-green-100 text-green-700 font-medium rounded-lg border border-green-200">
+              <div className="mb-4 md:mb-6 p-4 bg-green-100 text-green-700 font-medium rounded-lg border border-green-200">
                 🥳 Your message has been sent successfully!
               </div>
             )}
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
               <input
                 type="text"
                 placeholder="Full Name"
@@ -177,9 +177,9 @@ export default function ContactPage() {
         </div>
 
         {/* MAP */}
-        <div className="max-w-7xl mx-auto mt-16 px-4">
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Location</h3>
-          <div className="w-full h-72 md:h-80 rounded-3xl overflow-hidden shadow-md border border-gray-200">
+        <div className="max-w-7xl mx-auto mt-8 md:mt-16 px-4">
+          <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Our Location</h3>
+          <div className="w-full h-64 md:h-72 rounded-2xl md:rounded-3xl overflow-hidden shadow-md border border-gray-200">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3889.8050151135087!2d77.72891557484227!3d13.005833887324216!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae11424d3979f3%3A0x4cea90e1c13c4c5!2sG7%20Kemps%20Green%20View%2C%20Ayyappanagar%2C%20Krishnarajapura%2C%20Bengaluru%2C%20Karnataka%20560016!5e0!3m2!1sen!2sin!4v1709397770000!5m2!1sen!2sin"
               className="w-full h-full"
@@ -192,8 +192,8 @@ export default function ContactPage() {
         </div>
 
         {/* TESTIMONIAL FORM */}
-        <div className="max-w-4xl mx-auto mt-16 px-4 bg-white p-8 rounded-3xl shadow-lg border border-gray-100">
-          <h3 className="text-3xl font-bold mb-6 text-gray-900">Share Your Experience</h3>
+        <div className="max-w-4xl mx-auto mt-8 md:mt-16 px-4 bg-white p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-lg border border-gray-100">
+          <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-gray-900">Share Your Experience</h3>
           {testSuccess && (
             <div className="p-4 mb-4 bg-green-100 text-green-700 font-medium rounded-lg border border-green-200">
               Thank you for your valuable feedback!
@@ -239,17 +239,17 @@ export default function ContactPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-14 bg-instafitcore-green text-center px-4">
+      <section className="py-8 md:py-14 bg-instafitcore-green text-center px-4">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">
             Need Services Right Away?
           </h2>
-          <p className="text-white/90 sm:text-lg md:text-xl mb-6">
+          <p className="text-white/90 sm:text-lg md:text-xl mb-4 md:mb-6">
             Skip the message and head straight to booking.
           </p>
           <Link
             href="/site/services"
-            className="inline-block px-8 sm:px-10 py-3 sm:py-4 bg-white text-instafitcore-green font-bold rounded-full hover:bg-teal-50 shadow-md transition"
+            className="inline-block px-6 sm:px-8 py-3 sm:py-4 bg-white text-instafitcore-green font-bold rounded-full hover:bg-teal-50 shadow-md transition"
           >
             Book a Service Now →
           </Link>

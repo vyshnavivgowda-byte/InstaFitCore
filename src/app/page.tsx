@@ -1,6 +1,11 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect } from "react";
 
 export default function Home() {
-  redirect("/site");
+  useEffect(() => {
+    window.location.href = "/site/";
+  }, []);
+
   return null;
 }

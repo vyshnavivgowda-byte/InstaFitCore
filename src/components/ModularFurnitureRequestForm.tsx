@@ -84,22 +84,22 @@ export default function CustomizedModularFurniturePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f0f9f0] to-[#e8f5e8] py-8 md:py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#f0f9f0] to-[#e8f5e8] py-4 md:py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
-        <div className="text-center mb-8 md:mb-16">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-4 md:mb-6">
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 md:mb-4">
             Customized <span className="text-[#8ed26b]">Modular</span> Furniture
           </h1>
-          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-2">
+          <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed px-2">
             Design your perfect space with our customized modular furniture solutions.
             Submit your requirements and our team will contact you shortly.
           </p>
         </div>
 
         {/* Furniture Types Showcase */}
-        <div className="mb-8 md:mb-12">
-          <h2 className="text-xl md:text-2xl font-semibold text-center text-gray-800 mb-4">
+        <div className="mb-6 md:mb-8">
+          <h2 className="text-lg md:text-xl font-semibold text-center text-gray-800 mb-3 md:mb-4">
             Popular Furniture Types
           </h2>
           <div className="flex flex-wrap justify-center gap-2 md:gap-3">
@@ -123,19 +123,19 @@ export default function CustomizedModularFurniturePage() {
         </div>
 
         {/* Form Section */}
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          <div className="bg-[#8ed26b] py-4 md:py-6 px-6 md:px-8">
-            <h2 className="text-xl md:text-2xl font-bold text-white text-center">
+        <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden">
+          <div className="bg-[#8ed26b] py-3 md:py-4 px-4 md:px-6">
+            <h2 className="text-lg md:text-xl font-bold text-white text-center">
               Submit Your Requirements
             </h2>
           </div>
-          <form onSubmit={handleSubmit} className="p-6 md:p-8 lg:p-12 space-y-8 md:space-y-12">
+          <form onSubmit={handleSubmit} className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 lg:space-y-8">
             {/* Customer Details */}
-            <div className="space-y-4 md:space-y-2">
-              <h3 className="text-xl md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">
                 Customer Details
               </h3>
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex flex-col md:flex-row gap-3 md:gap-4">
                 <div className="flex-1">
                   <label className="block text-gray-700 font-medium text-sm mb-1">
                     Full Name <span className="text-red-500">*</span>
@@ -182,11 +182,11 @@ export default function CustomizedModularFurniturePage() {
             </div>
 
             {/* Address Details */}
-            <div className="space-y-4">
-              <h3 className="text-xl md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">
                 Address Details
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {([
                   ["flat_no", "Flat / House / Plot No", true],
                   ["floor", "Floor", true],
@@ -216,11 +216,11 @@ export default function CustomizedModularFurniturePage() {
             </div>
 
             {/* Furniture Requirement */}
-            <div className="space-y-4">
-              <h3 className="text-xl md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">
                 Furniture Requirement
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 <div className="flex-1">
                   <label className="block text-gray-700 font-medium text-sm mb-1">
                     Requirement Details <span className="text-red-500">*</span>
@@ -228,7 +228,7 @@ export default function CustomizedModularFurniturePage() {
                   <textarea
                     name="furniture_requirement_details"
                     required
-                    className={`${input} h-24 md:h-28 resize-none`}
+                    className={`${input} h-20 md:h-24 resize-none`}
                     value={form.furniture_requirement_details}
                     onChange={handleChange}
                     placeholder="Describe your furniture requirements..."
@@ -285,12 +285,12 @@ export default function CustomizedModularFurniturePage() {
                     name="additional_notes"
                     value={form.additional_notes}
                     onChange={handleChange}
-                    className={`${input} h-20 md:h-24 resize-none`}
+                    className={`${input} h-16 md:h-20 resize-none`}
                     placeholder="Any special instructions or notes..."
                   />
                 </div>
 
-                <div className="col-span-1 md:col-span-2 flex items-center gap-2 mt-4">
+                <div className="col-span-1 md:col-span-2 flex items-center gap-2 mt-2 md:mt-4">
                   <input
                     type="checkbox"
                     name="measurements_available"
@@ -305,7 +305,7 @@ export default function CustomizedModularFurniturePage() {
 
             <button
               disabled={loading}
-              className="w-full py-4 md:py-5 bg-[#8ed26b] hover:bg-[#7bc55a] text-white font-bold text-lg md:text-xl rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-h-[48px]"
+              className="w-full py-3 md:py-4 bg-[#8ed26b] hover:bg-[#7bc55a] text-white font-bold text-base md:text-lg rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-h-[44px]"
             >
               {loading ? (
                 <div className="flex items-center">
@@ -337,4 +337,4 @@ const Field = ({ label, required, children }: any) => (
 );
 
 /* ================= INPUT STYLES ================= */
-const input = `w-full border border-gray-300 rounded-xl px-4 py-3 md:py-4 focus:outline-none focus:ring-2 focus:ring-[#8ed26b] focus:border-[#8ed26b] transition-all duration-200 bg-gray-50 hover:bg-white text-gray-900 placeholder-gray-500 text-sm md:text-base min-h-[44px]`;
+const input = `w-full border border-gray-300 rounded-lg md:rounded-xl px-3 md:px-4 py-2 md:py-3 focus:outline-none focus:ring-2 focus:ring-[#8ed26b] focus:border-[#8ed26b] transition-all duration-200 bg-gray-50 hover:bg-white text-gray-900 placeholder-gray-500 text-sm md:text-base min-h-[40px] md:min-h-[44px]`;

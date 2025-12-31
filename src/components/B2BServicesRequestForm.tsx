@@ -78,23 +78,23 @@ export default function B2BServiceRequirementPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f0f9f0] to-[#e8f5e8] py-8 md:py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#f0f9f0] to-[#e8f5e8] py-4 md:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="text-center mb-8 md:mb-16">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-4 md:mb-5">
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 md:mb-4">
             B2B Services <span className="text-[#8ed26b]">Requirement</span> Request
           </h1>
-          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-2">
+          <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed px-2">
             Tailored solutions for Brands, Retailers, Corporates & Enterprises.
             Let us handle your logistics and service needs with precision and care.
           </p>
         </div>
 
         {/* Services Showcase */}
-        <div className="mb-8 md:mb-12">
-          <h2 className="text-xl md:text-2xl font-semibold text-center text-gray-800 mb-4">Our Services</h2>
+        <div className="mb-6 md:mb-12">
+          <h2 className="text-lg md:text-xl font-semibold text-center text-gray-800 mb-3 md:mb-4">Our Services</h2>
           <div className="flex flex-wrap justify-center gap-2 md:gap-3">
             {[
               { name: "Delivery", icon: <FaTruck /> },
@@ -114,17 +114,17 @@ export default function B2BServiceRequirementPage() {
         </div>
 
         {/* Form Section */}
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          <div className="bg-[#8ed26b] py-4 md:py-6 px-6 md:px-8">
-            <h2 className="text-xl md:text-2xl font-bold text-white text-center">
+        <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden">
+          <div className="bg-[#8ed26b] py-3 md:py-6 px-4 md:px-8">
+            <h2 className="text-lg md:text-xl font-bold text-white text-center">
               Submit Your Requirements
             </h2>
           </div>
-          <form onSubmit={handleSubmit} className="p-6 md:p-8 lg:p-12 space-y-8 md:space-y-12">
+          <form onSubmit={handleSubmit} className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 lg:space-y-8">
 
             {/* Company Details */}
             <Section title="Company Details">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                 <Field label="Company / Brand Name" required>
                   <input name="company_name" required value={form.company_name} onChange={handleChange} className={input} placeholder="e.g., ABC Furniture Co." />
                 </Field>
@@ -142,7 +142,7 @@ export default function B2BServiceRequirementPage() {
 
             {/* Address Details */}
             <Section title="Address Details">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {([
                   ["flat_no", "Flat / House / Plot No", true],
                   ["floor", "Floor", true],
@@ -170,7 +170,7 @@ export default function B2BServiceRequirementPage() {
 
            {/* Service Details */}
 <Section title="Service Details">
-  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
 
     {/* FIRST ROW */}
     <Field label="Service Location / Coverage Area" required>
@@ -209,14 +209,14 @@ export default function B2BServiceRequirementPage() {
     <div className="hidden lg:block" />
 
     {/* SECOND ROW — TEXTAREAS */}
-    <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+    <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
       <Field label="Service Requirement Description" required>
         <textarea
           name="service_requirement_description"
           required
           value={form.service_requirement_description}
           onChange={handleChange}
-          className={`${input} h-28 resize-none`}
+          className={`${input} h-20 md:h-24 resize-none`}
           placeholder="Delivery, delivery-cum-installation, installation only, reverse pickup, repair, store setup, relocation, etc. – describe in detail"
         />
       </Field>
@@ -226,7 +226,7 @@ export default function B2BServiceRequirementPage() {
           name="volume_scale_of_work"
           value={form.volume_scale_of_work}
           onChange={handleChange}
-          className={`${input} h-28 resize-none`}
+          className={`${input} h-20 md:h-24 resize-none`}
           placeholder="Number of orders, stores, locations, or approximate monthly volume."
         />
       </Field>
@@ -236,7 +236,7 @@ export default function B2BServiceRequirementPage() {
           name="furniture_product_details"
           value={form.furniture_product_details}
           onChange={handleChange}
-          className={`${input} h-28 resize-none`}
+          className={`${input} h-20 md:h-24 resize-none`}
           placeholder="Type of products involved – beds, wardrobes, sofas, modular units, etc."
         />
       </Field>
@@ -248,10 +248,10 @@ export default function B2BServiceRequirementPage() {
 
             {/* Additional Notes */}
             <Section title="Additional Notes">
-              <textarea name="additional_notes" value={form.additional_notes} onChange={handleChange} className={`${input} h-20 md:h-24 resize-none`} placeholder="Any special instructions or notes..." />
+              <textarea name="additional_notes" value={form.additional_notes} onChange={handleChange} className={`${input} h-16 md:h-20 resize-none`} placeholder="Any special instructions or notes..." />
             </Section>
 
-            <button disabled={loading} className="w-full py-4 md:py-5 bg-[#8ed26b] hover:bg-[#7bc55a] text-white font-bold text-lg md:text-xl rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-h-[48px]">
+            <button disabled={loading} className="w-full py-3 md:py-4 bg-[#8ed26b] hover:bg-[#7bc55a] text-white font-bold text-base md:text-lg rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-h-[44px]">
               {loading ? (
                 <div className="flex items-center">
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -272,17 +272,17 @@ export default function B2BServiceRequirementPage() {
 
 /* ================= REUSABLE COMPONENTS ================= */
 const Section = ({ title, children }: any) => (
-  <div className="space-y-4 md:space-y-6">
-    <h3 className="text-xl md:text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">{title}</h3>
+  <div className="space-y-3 md:space-y-4">
+    <h3 className="text-lg md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">{title}</h3>
     {children}
   </div>
 );
 
 const Field = ({ label, required, children }: any) => (
-  <div className="flex flex-col gap-2">
+  <div className="flex flex-col gap-2 md:gap-3">
     <label className="text-gray-700 font-semibold text-sm md:text-base">{label} {required && <span className="text-red-500">*</span>}</label>
     {children}
   </div>
 );
 
-const input = `w-full border border-gray-300 rounded-xl px-4 py-3 md:py-4 focus:outline-none focus:ring-2 focus:ring-[#8ed26b] focus:border-[#8ed26b] transition-all duration-200 bg-gray-50 hover:bg-white text-gray-900 placeholder-gray-500 text-sm md:text-base min-h-[44px]`;
+const input = `w-full border border-gray-300 rounded-lg md:rounded-xl px-3 md:px-4 py-2 md:py-3 focus:outline-none focus:ring-2 focus:ring-[#8ed26b] focus:border-[#8ed26b] transition-all duration-200 bg-gray-50 hover:bg-white text-gray-900 placeholder-gray-500 text-sm md:text-base min-h-[40px] md:min-h-[44px]`;

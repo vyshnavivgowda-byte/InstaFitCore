@@ -1,11 +1,13 @@
-"use client";
-
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import { ToastProvider } from "@/components/Toast";
 
-export default function SiteLayout({ children }: { children: React.ReactNode }) {
+export default function SiteLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <ToastProvider>
       <div className="bg-gray-50 min-h-screen">

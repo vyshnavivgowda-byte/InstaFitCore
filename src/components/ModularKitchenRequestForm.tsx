@@ -107,26 +107,25 @@ export default function CustomizedModularKitchenPage() {
     }
   };
 
-
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f0f9f0] to-[#e8f5e8] py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#f0f9f0] to-[#e8f5e8] py-4 md:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-4 md:mb-5">
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 md:mb-4">
             Customized <span className="text-[#8ed26b]">Modular</span> Kitchen
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed px-2">
             Design your dream kitchen with our customized modular solutions. Request a consultation and our experts will reach out to you.
           </p>
         </div>
 
         {/* Popular Kitchen Layouts */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-semibold text-center text-gray-800 mb-4">Popular Kitchen Layouts</h2>
-          <div className="flex flex-wrap justify-center gap-3">
+        <div className="mb-6 md:mb-12">
+          <h2 className="text-lg md:text-xl font-semibold text-center text-gray-800 mb-3 md:mb-4">Popular Kitchen Layouts</h2>
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
             {[
               { name: "L-Shape Kitchen", icon: <FaUtensils /> },
               { name: "U Shape Kitchen", icon: <FaRegSquare /> },
@@ -136,9 +135,9 @@ export default function CustomizedModularKitchenPage() {
             ].map((item) => (
               <div
                 key={item.name}
-                className="flex items-center gap-2 bg-[#8ed26b] text-black rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#7bc55a] transition-all cursor-pointer"
+                className="flex items-center gap-2 bg-[#8ed26b] text-black rounded-lg px-3 md:px-4 py-2 text-sm font-medium hover:bg-[#7bc55a] transition-all cursor-pointer min-h-[40px]"
               >
-                <span className="text-lg">{item.icon}</span>
+                <span className="text-base md:text-lg">{item.icon}</span>
                 <span>{item.name}</span>
               </div>
             ))}
@@ -146,16 +145,16 @@ export default function CustomizedModularKitchenPage() {
         </div>
 
         {/* Consultation Form */}
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          <div className="bg-[#8ed26b] py-6 px-8">
-            <h2 className="text-2xl font-bold text-white text-center">Request Your Consultation</h2>
+        <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden">
+          <div className="bg-[#8ed26b] py-3 md:py-6 px-4 md:px-8">
+            <h2 className="text-lg md:text-xl font-bold text-white text-center">Request Your Consultation</h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-12">
+          <form onSubmit={handleSubmit} className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 lg:space-y-8">
             {/* Customer Details */}
-            <div className="space-y-8">
-              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Customer Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">Customer Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 <Field label="Full Name" required>
                   <input name="full_name" value={form.full_name} onChange={handleChange} required className={input} placeholder="e.g., John Doe" />
                 </Field>
@@ -178,9 +177,9 @@ export default function CustomizedModularKitchenPage() {
             </div>
 
             {/* Address Details */}
-            <div className="space-y-8">
-              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Address Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">Address Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {([
                   ["flat_no", "Flat / House / Plot No", true],
                   ["floor", "Floor", true],
@@ -200,14 +199,14 @@ export default function CustomizedModularKitchenPage() {
             </div>
 
             {/* Kitchen Details */}
-            <div className="space-y-8">
-              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Kitchen / Furniture Details</h3>
-              <div className="space-y-6">
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">Kitchen / Furniture Details</h3>
+              <div className="space-y-3 md:space-y-4">
                 <Field label="Layout / Shape Description">
-                  <textarea name="kitchen_layout_description" className={`${input} h-32 resize-none`} value={form.kitchen_layout_description} onChange={handleChange} placeholder="L-shape, U-shape, straight, island – describe in your own words" />
+                  <textarea name="kitchen_layout_description" className={`${input} h-20 md:h-24 resize-none`} value={form.kitchen_layout_description} onChange={handleChange} placeholder="L-shape, U-shape, straight, island – describe in your own words" />
                 </Field>
                 <Field label="Space / Size Details">
-                  <textarea name="kitchen_space_size_details" className={`${input} h-24 resize-none`} value={form.kitchen_space_size_details} onChange={handleChange} placeholder="Approximate size or description of available space" />
+                  <textarea name="kitchen_space_size_details" className={`${input} h-16 md:h-20 resize-none`} value={form.kitchen_space_size_details} onChange={handleChange} placeholder="Approximate size or description of available space" />
                 </Field>
                 <Field label="Property Type & Status" required>
                   <input name="property_type_status" value={form.property_type_status} onChange={handleChange} required className={input} placeholder="Apartment / Independent house / New or Renovation" />
@@ -216,7 +215,7 @@ export default function CustomizedModularKitchenPage() {
                   <input name="material_finish_preference" value={form.material_finish_preference} onChange={handleChange} className={input} placeholder="If any – customer can freely describe" />
                 </Field>
                 <Field label="Storage & Design Expectations">
-                  <textarea name="storage_design_expectations" className={`${input} h-24 resize-none`} value={form.storage_design_expectations} onChange={handleChange} placeholder="Cabinets, drawers, pantry units, etc." />
+                  <textarea name="storage_design_expectations" className={`${input} h-16 md:h-20 resize-none`} value={form.storage_design_expectations} onChange={handleChange} placeholder="Cabinets, drawers, pantry units, etc." />
                 </Field>
                 <Field label="Appliances to be Integrated">
                   <input name="appliances_to_be_integrated" value={form.appliances_to_be_integrated} onChange={handleChange} className={input} placeholder="Hob, chimney, oven, dishwasher..." />
@@ -225,9 +224,9 @@ export default function CustomizedModularKitchenPage() {
             </div>
 
             {/* Timeline & Budget */}
-            <div className="space-y-8">
-              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Timeline & Budget</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">Timeline & Budget</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 <Field label="Expected Timeline" required>
                   <input name="expected_timeline" value={form.expected_timeline} onChange={handleChange} required className={input} placeholder="e.g., Within 3 months" />
                 </Field>
@@ -238,11 +237,10 @@ export default function CustomizedModularKitchenPage() {
             </div>
 
             {/* Site Visit */}
-            {/* Site Visit */}
-            <div className="space-y-8">
-              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Site Visit</h3>
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">Site Visit</h3>
 
-              <label className="flex items-center gap-3 text-base font-semibold">
+              <label className="flex items-center gap-3 text-sm md:text-base font-semibold">
                 <input
                   type="checkbox"
                   name="site_visit_required"
@@ -267,15 +265,14 @@ export default function CustomizedModularKitchenPage() {
               )}
             </div>
 
-
             {/* Reference Images */}
-            <div className="space-y-4">
-              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Reference Images / Inspiration (Optional)</h3>
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">Reference Images / Inspiration (Optional)</h3>
               <input type="file" multiple accept="image/*" onChange={handleImageChange} className={input} />
               {referenceImages.length > 0 && (
-                <div className="flex flex-wrap gap-4 mt-2">
+                <div className="flex flex-wrap gap-2 md:gap-4 mt-2">
                   {referenceImages.map((file, index) => (
-                    <div key={index} className="relative w-24 h-24 border rounded-lg overflow-hidden">
+                    <div key={index} className="relative w-20 h-20 md:w-24 md:h-24 border rounded-lg overflow-hidden">
                       <img
                         src={URL.createObjectURL(file)}
                         alt="preview"
@@ -297,14 +294,24 @@ export default function CustomizedModularKitchenPage() {
             </div>
 
             {/* Additional Notes */}
-            <div className="space-y-8">
-              <h3 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-2">Additional Notes</h3>
-              <textarea name="additional_notes" className={`${input} h-24 resize-none`} value={form.additional_notes} onChange={handleChange} placeholder="Any special instructions or notes..." />
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-800 border-b-2 border-[#8ed26b] pb-1">Additional Notes</h3>
+              <textarea name="additional_notes" className={`${input} h-16 md:h-20 resize-none`} value={form.additional_notes} onChange={handleChange} placeholder="Any special instructions or notes..." />
             </div>
 
             {/* Submit Button */}
-            <button disabled={loading} className="w-full py-4 bg-[#8ed26b] hover:bg-[#7bc55a] text-white font-bold text-xl rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-              {loading ? "Submitting..." : "Request Modular Furniture Consultation"}
+            <button disabled={loading} className="w-full py-3 md:py-4 bg-[#8ed26b] hover:bg-[#7bc55a] text-white font-bold text-base md:text-lg rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-h-[44px]">
+              {loading ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Submitting...
+                </div>
+              ) : (
+                "Request Modular Kitchen Consultation"
+              )}
             </button>
           </form>
         </div>
@@ -315,8 +322,8 @@ export default function CustomizedModularKitchenPage() {
 
 /* ================= REUSABLE COMPONENTS ================= */
 const Field = ({ label, required, children }: any) => (
-  <div className="flex flex-col gap-3">
-    <label className="text-gray-700 font-semibold text-base">
+  <div className="flex flex-col gap-2 md:gap-3">
+    <label className="text-gray-700 font-semibold text-sm md:text-base">
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     {children}
@@ -324,4 +331,4 @@ const Field = ({ label, required, children }: any) => (
 );
 
 /* ================= INPUT STYLES ================= */
-const input = `w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#8ed26b] focus:border-[#8ed26b] transition-all duration-200 bg-gray-50 hover:bg-white text-gray-900 placeholder-gray-500`;
+const input = `w-full border border-gray-300 rounded-lg md:rounded-xl px-3 md:px-4 py-2 md:py-3 focus:outline-none focus:ring-2 focus:ring-[#8ed26b] focus:border-[#8ed26b] transition-all duration-200 bg-gray-50 hover:bg-white text-gray-900 placeholder-gray-500 text-sm md:text-base min-h-[40px] md:min-h-[44px]`;

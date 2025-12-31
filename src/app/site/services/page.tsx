@@ -191,14 +191,27 @@ function ServicesPageContent() {
     useState<string | null>(null);
 
   // Auto-filter by typeId
-  // Auto-filter by typeId
-  // Auto-filter by typeId
   useEffect(() => {
     if (!typeId) return;
     if (typeId === "1") setActivePriceFilter("install");
     if (typeId === "2") setActivePriceFilter("dismantle");
     if (typeId === "3") setActivePriceFilter("repair");
   }, [typeId]);
+
+  // Handle category and subcategory from search params
+  useEffect(() => {
+    const categoryParam = searchParams.get("category");
+    const subcategoryParam = searchParams.get("subcategory");
+
+    if (subcategoryParam) {
+      setSelectedSubcategory(subcategoryParam);
+      if (categoryParam) setSelectedCategory(categoryParam);
+      setSelectedTopLevel("Furniture Service"); // Expand furniture section
+    } else if (categoryParam) {
+      setSelectedCategory(categoryParam);
+      setSelectedTopLevel("Furniture Service");
+    }
+  }, [searchParams]);
 
   // Add this new useEffect to handle the topLevel query param
   useEffect(() => {
@@ -493,18 +506,21 @@ function ServicesPageContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* HEADER */}
-      <header className="bg-instafitcore-green text-white py-4 px-3 md:py-8 md:px-4 text-center shadow-lg relative">
-        <div className="max-w-4xl mx-auto flex flex-col items-center justify-center text-center gap-2">
+      <header className="bg-instafitcore-green text-white pt-2 pb-3 md:pt-4 md:pb-5 shadow-lg">
+        <div className="w-full flex flex-col items-center justify-center text-center gap-2 px-2">
+
           <h1 className="text-lg md:text-xl lg:text-2xl font-extrabold flex items-center gap-2 justify-center">
             <Bolt className="w-4 h-4 md:w-5 md:h-5" />
             Premium Service Catalogue
           </h1>
 
-          <p className="text-xs md:text-sm opacity-90 max-w-sm">
-            Find the perfect solution from our installation, repair & dismantling services.
+          <p className="text-xs md:text-sm opacity-90 text-center max-w-2xl">
+            Find the perfect solution—from delivery and installation to modular solutions, repair, and relocation—handled end-to-end by certified professionals
           </p>
+
         </div>
       </header>
+
       {previousState && selectedTopLevel !== "Furniture Service" && (
         <div className="mt-4"> {/* Top margin only */}
           <button
@@ -1278,28 +1294,37 @@ function ServicesPageContent() {
                   </span>
                 </label>
               )}
-
               {/* Repair */}
               {formatPrice(selectedServiceForCart.repair_price) && (
-                <label className="flex items-center space-x-3 p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
-                  <input
-                    type="checkbox"
-                    className={`w-5 h-5 text-instafitcore-green rounded focus:ring-instafitcore-green`}
-                    checked={selectedServiceTypes.includes("repair")}
-                    onChange={() => {
-                      setSelectedServiceTypes((prev) =>
-                        prev.includes("repair")
-                          ? prev.filter((t) => t !== "repair")
-                          : [...prev, "repair"]
-                      );
-                    }}
-                  />
-                  <span className="font-medium text-lg flex-grow">Repair</span>
-                  <span className="text-green-600 font-bold text-lg">
-                    {formatPrice(selectedServiceForCart.repair_price)}
-                  </span>
-                </label>
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-3 p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 text-instafitcore-green rounded focus:ring-instafitcore-green"
+                      checked={selectedServiceTypes.includes("repair")}
+                      onChange={() => {
+                        setSelectedServiceTypes((prev) =>
+                          prev.includes("repair")
+                            ? prev.filter((t) => t !== "repair")
+                            : [...prev, "repair"]
+                        );
+                      }}
+                    />
+                    <span className="font-medium text-lg flex-grow">Repair</span>
+                    <span className="text-green-600 font-bold text-lg">
+                      {formatPrice(selectedServiceForCart.repair_price)}
+                    </span>
+                  </label>
+
+                  {/* 👇 Inspection Note (ONLY when repair selected) */}
+                  {selectedServiceTypes.includes("repair") && (
+                    <p className="text-xs text-gray-500 pl-2">
+                      Inspection fee only. Repair cost will be quoted after on-site assessment.
+                    </p>
+                  )}
+                </div>
               )}
+
             </div>
 
             <button

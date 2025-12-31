@@ -26,6 +26,9 @@ const LIGHT_BG = "#f5f7fa"; // Light background for the page
 const CARD_BG = "#ffffff"; // White for card backgrounds
 const BORDER_COLOR = "#e6f6dc"; // Very light green for subtle borders/summary background
 
+// --- Tax Rate (Assuming 18% GST for services in India) ---
+const TAX_RATE = 0.18;
+
 // --- Types (Kept as is) ---
 type ServiceType = "installation" | "dismantling" | "repair";
 
@@ -115,7 +118,7 @@ const AddressForm: React.FC<{
                 />
                 {errors.customer_name && <p className="text-red-500 text-sm mt-1">{errors.customer_name}</p>}
             </div>
-             <div>
+            <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Pincode *</label>
                 <input
                     type="text"
@@ -221,7 +224,7 @@ const AddressForm: React.FC<{
                 />
                 {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
             </div>
-             <div>
+            <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Alternate Mobile</label>
                 <input
                     type="tel"
@@ -245,8 +248,8 @@ const RemoveModal: React.FC<{
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-auto">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Confirm Removal</h3>
                 <p className="text-gray-600 mb-6">Are you sure you want to remove "{itemName}" from your cart?</p>
                 <div className="flex justify-end space-x-4">
@@ -358,6 +361,16 @@ const CartItemCard: React.FC<{
                                     </label>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {/* 🔧 Repair inspection note */}
+                    {item.selected_services?.includes("repair") && (
+                        <div className="mt-2 flex items-start gap-2 text-xs text-gray-500">
+                            <Info className="w-4 h-4 mt-[2px]" />
+                            <span>
+                                Inspection fee only. Repair cost will be quoted after on-site assessment.
+                            </span>
                         </div>
                     )}
                 </div>
@@ -503,166 +516,120 @@ export default function CartPage() {
         fetchCartItems();
     }, [fetchCartItems]);
 
-    const cartTotal = useMemo(() => {
+    const cartSubtotal = useMemo(() => {
         return cartItems.reduce((sum, item) => {
             const unitPrice = calculateUnitServicePrice(item.service, item.selected_services);
             return sum + item.quantity * unitPrice;
         }, 0);
     }, [cartItems]);
 
+    const taxAmount = Math.round(cartSubtotal * TAX_RATE);
+    const cartTotal = cartSubtotal + taxAmount;
     const handleRazorpayPayment = useCallback(async () => {
-        setSubmitAttempted(true);
+    setSubmitAttempted(true);
 
-        // 1️⃣ Cart validation
-        if (cartItems.length === 0) {
-            toast({
-                title: "Cart empty",
-                description: "Add items before checkout.",
-                variant: "destructive",
-            });
-            return;
+    // 1️⃣ Cart validation
+    if (cartItems.length === 0) {
+        toast({ title: "Cart empty", description: "Add items before checkout.", variant: "destructive" });
+        return;
+    }
+
+    // 2️⃣ Address validation
+    const errors = validateAddress(addressFields);
+    setAddressErrors(errors);
+
+    const hasInvalidItems = cartItems.some(it => !it.service || !it.selected_services?.length);
+    if (Object.keys(errors).length > 0 || hasInvalidItems) {
+        if (hasInvalidItems) {
+            toast({ title: "Selection missing", description: "Please select service options for all items.", variant: "destructive" });
         }
+        return;
+    }
 
-        // 2️⃣ Address validation
-        const errors = validateAddress(addressFields);
-        setAddressErrors(errors);
+    // 3️⃣ Load Razorpay
+    try {
+        await loadRazorpay();
+    } catch {
+        toast({ title: "Payment Error", description: "Failed to load Razorpay.", variant: "destructive" });
+        return;
+    }
 
-        const hasInvalidItems = cartItems.some(
-            it => !it.service || !it.selected_services?.length
-        );
+    // 4️⃣ Razorpay options
+    const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+        amount: cartTotal * 100,
+        currency: "INR",
+        name: "Insta Fit Core",
+        description: "Service Booking Payment",
+        prefill: { name: addressFields.customer_name, contact: addressFields.mobile },
+        theme: { color: PRIMARY_COLOR },
 
-        if (Object.keys(errors).length > 0 || hasInvalidItems) {
-            if (hasInvalidItems) {
+        handler: async function (response: any) {
+            let bookingSuccessful = false;
+            try {
+                const { data: sessionData } = await supabase.auth.getSession();
+                const userId = sessionData?.session?.user?.id;
+                if (!userId) throw new Error("User not logged in");
+
+                const now = new Date();
+                const bookingDate = now.toISOString().split("T")[0];
+                const bookingTime = now.toISOString().slice(11, 19);
+
+                const fullAddress = `
+${addressFields.flat_no}${addressFields.floor ? ", Floor " + addressFields.floor : ""}
+${addressFields.building_name ? ", " + addressFields.building_name : ""}
+${addressFields.street}
+${addressFields.area_zone ? ", " + addressFields.area_zone : ""}
+${addressFields.landmark ? ", Near " + addressFields.landmark : ""}
+${addressFields.city}, ${addressFields.state} - ${addressFields.pincode}
+`.replace(/\n/g, " ").trim();
+
+                const bookingRows = cartItems.map(item => ({
+                    user_id: userId,
+                    customer_name: addressFields.customer_name,
+                    customer_mobile: addressFields.mobile,
+                    date: bookingDate,
+                    booking_time: bookingTime,
+                    status: "Pending",
+                    service_name: item.service?.service_name || "Service",
+                    service_types: Array.isArray(item.selected_services) ? item.selected_services : [],
+                    total_price: cartTotal,
+                    address: fullAddress,
+                    service_id: item.service_id,
+                    payment_id: response.razorpay_payment_id,
+                }));
+
+                const { error: bookingError } = await supabase.from("bookings").insert(bookingRows);
+                if (bookingError) throw bookingError;
+
+                bookingSuccessful = true;
+
+                // Clear cart
+                await supabase.from("cart_items").delete().eq("user_id", userId);
+                setCartItems([]);
+
+                toast({ title: "Booking confirmed", description: "Your service has been booked successfully.", variant: "success" });
+                router.push("/site/order-tracking");
+
+            } catch (err: any) {
+                console.error("Booking insert failed:", err);
+
+                if (bookingSuccessful) return; // unlikely, just safety
+
+                // Payment succeeded but booking failed
                 toast({
-                    title: "Selection missing",
-                    description: "Please select service options for all items.",
+                    title: "Payment successful, booking failed",
+                    description: "Your payment was received, but we could not create the booking. Please contact support with your payment ID: " + response.razorpay_payment_id,
                     variant: "destructive",
                 });
             }
-            return;
-        }
+        },
+    };
 
-        // 3️⃣ Load Razorpay
-        try {
-            await loadRazorpay();
-        } catch {
-            toast({
-                title: "Payment Error",
-                description: "Failed to load Razorpay.",
-                variant: "destructive",
-            });
-            return;
-        }
+    const razorpay = new (window as any).Razorpay(options);
+    razorpay.open();
 
-        // 4️⃣ Create Razorpay order
-        const res = await fetch("/api/razorpay/create-order", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                amount: Math.round(cartTotal * 100), // INR → paise
-            }),
-        });
-
-        const order = await res.json();
-        if (!order?.id) {
-            toast({
-                title: "Payment failed",
-                description: "Unable to create payment order.",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        // 5️⃣ Open Razorpay popup
-        const options = {
-            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-            amount: order.amount,
-            currency: "INR",
-            name: "instafit core ",
-            description: "Service Booking Payment",
-            order_id: order.id,
-
-            handler: async function (response: any) {
-                try {
-                    const { data: sessionData } = await supabase.auth.getSession();
-                    const userId = sessionData?.session?.user?.id;
-
-                    if (!userId) throw new Error("User not logged in");
-
-                    const today = new Date();
-                    const bookingDate = today.toISOString().split("T")[0]; // YYYY-MM-DD
-                    const bookingTime = today.toTimeString().slice(0, 5); // HH:mm
-
-                    // 📦 Build address string
-                    const fullAddress = `
-${addressFields.flat_no}, ${addressFields.street},
-${addressFields.area_zone}, ${addressFields.city},
-${addressFields.state} - ${addressFields.pincode}
-        `.trim();
-
-                    // 💾 INSERT BOOKINGS (one per cart item)
-                    const bookingPayload = cartItems.map(item => ({
-                        user_id: userId,
-                        customer_name: addressFields.customer_name,
-                        customer_mobile: addressFields.mobile,
-                        date: bookingDate,
-                        booking_time: bookingTime,
-                        status: "Pending",
-                        service_name: item.service?.service_name || "Service",
-                        service_types: item.selected_services || [],
-                        total_price:
-                            item.quantity *
-                            calculateUnitServicePrice(item.service, item.selected_services),
-                        address: fullAddress,
-                        service_id: item.service_id,
-                        payment_id: response.razorpay_payment_id || null,
-                    }));
-
-                    const { error: bookingError } = await supabase
-                        .from("bookings")
-                        .insert(bookingPayload);
-
-                    if (bookingError) {
-                        console.error("Booking insert failed:", bookingError);
-                        throw bookingError;
-                    }
-
-                    // 🧹 CLEAR CART (DB)
-                    await supabase
-                        .from("cart_items")
-                        .delete()
-                        .eq("user_id", userId);
-
-                    // 🧹 CLEAR UI
-                    setCartItems([]);
-
-                    // 🚀 Redirect
-                    router.push("/site/order-tracking");
-
-                } catch (err) {
-                    console.error("Booking failed:", err);
-                    toast({
-                        title: "Payment successful",
-                        description: "But booking creation failed. Contact support.",
-                        variant: "destructive",
-                    });
-                    router.push("/site/order-tracking");
-                }
-            },
-
-
-            prefill: {
-                name: addressFields.customer_name,
-                contact: addressFields.mobile,
-            },
-
-            theme: { color: PRIMARY_COLOR },
-        };
-
-        const razorpay = new (window as any).Razorpay(options);
-        razorpay.open();
-    }, [cartItems, cartTotal, addressFields, toast, router]);
-
+}, [cartItems, cartTotal, addressFields, toast, router]);
 
     const validateAddress = (f: AddressFields) => {
         const errors: { [key: string]: string } = {};
@@ -851,6 +818,7 @@ ${addressFields.state} - ${addressFields.pincode}
                 </button>
             </div>
         );
+    // Continuation of the code from the empty cart return statement
 
     if (cartItems.length === 0)
         return (
@@ -937,11 +905,11 @@ ${addressFields.state} - ${addressFields.pincode}
                     <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8 text-lg font-medium">
                         <div className="flex justify-between text-gray-700">
                             <p>Items Total</p>
-                            <p className="font-extrabold text-gray-900">₹{cartTotal.toFixed(2)}</p>
+                            <p className="font-extrabold text-gray-900">₹{cartSubtotal.toFixed(2)}</p>
                         </div>
                         <div className="flex justify-between text-gray-700">
-                            <p>Taxes & Fees</p>
-                            <p className="font-bold">₹0.00</p>
+                            <p>Taxes & Fees (18% GST)</p>
+                            <p className="font-bold">₹{taxAmount.toFixed(2)}</p>
                         </div>
                         <div className="flex justify-between text-gray-700">
                             <p>Discount</p>

@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase-client";
 import { Loader2, User as UserIcon, Mail, Save, AlertTriangle, CheckCircle, Edit, Phone, MapPin, Building2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+
 
 // --- Configuration ---
 const PRIMARY_COLOR = "#8ED26B";
@@ -40,6 +42,8 @@ export default function ProfilePage() {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
+
 
     // State for the editable form data
     const [username, setUsername] = useState('');
@@ -611,9 +615,13 @@ export default function ProfilePage() {
                     </div>
 
                     <button
-                        onClick={() => supabase.auth.signOut()}
+                        onClick={async () => {
+                            await supabase.auth.signOut();
+                            router.push("/site"); // redirect to site/home page
+                        }}
                         className="w-full sm:w-auto px-6 py-3 bg-red-500 text-white font-bold rounded-xl shadow-md transition-all duration-200 hover:bg-red-600 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-red-300 flex items-center justify-center"
                     >
+
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 mr-2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h9" />
                         </svg>

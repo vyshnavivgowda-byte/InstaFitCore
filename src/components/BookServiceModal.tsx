@@ -30,7 +30,6 @@ type Props = {
   userEmail: string; // ✅ Add this
 };
 
-
 // --- New Address Type Definition (Mirroring the uploaded image) ---
 type ServiceAddress = {
   fullName: string;
@@ -68,7 +67,7 @@ type FormErrors = {
   date?: string;
   time?: string;
   serviceTypes?: string;
-  address?: Record<keyof ServiceAddress, string> | string;
+  address?: Partial<Record<keyof ServiceAddress, string>> | string;
 };
 
 const SERVICE_TYPES = [
@@ -76,6 +75,9 @@ const SERVICE_TYPES = [
   { key: "Dismantle", label: "Dismantle", priceKey: "dismantling_price" as keyof ServiceItem },
   { key: "Repair", label: "Repair", priceKey: "repair_price" as keyof ServiceItem },
 ];
+
+// --- Tax Rate (Assuming 18% GST for services in India) ---
+const TAX_RATE = 0.18;
 
 // --- Reusable Input Component for cleaner JSX ---
 const InputField = ({ label, type = "text", value, onChange, error, className = "", maxLength }: {
@@ -93,7 +95,7 @@ const InputField = ({ label, type = "text", value, onChange, error, className = 
       type={type}
       value={value}
       onChange={onChange}
-      className={`w-full border rounded-lg px-4 py-2 focus:ring-2 transition text-sm ${error ? 'border-red-500' : 'border-gray-300'}`}
+      className={`w-full border rounded-lg px-3 py-2 focus:ring-2 transition text-sm ${error ? 'border-red-500' : 'border-gray-300'}`}
       style={{ '--tw-ring-color': PRIMARY_COLOR } as React.CSSProperties}
       maxLength={maxLength}
     />
@@ -348,11 +350,14 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
     });
   };
 
-  const totalPrice = serviceTypes.reduce((sum, type) => {
+  const subtotal = serviceTypes.reduce((sum, type) => {
     const option = SERVICE_TYPES.find(opt => opt.key === type);
     const price = option ? +(service[option.priceKey] || 0) : 0;
     return sum + price;
   }, 0);
+
+  const taxAmount = Math.round(subtotal * TAX_RATE);
+  const totalPrice = subtotal + taxAmount;
 
   const toggleService = (type: string) => {
     setServiceTypes(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]);
@@ -480,58 +485,17 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
     }
   };
 
-  const generateOrderNumber = async () => {
-    // Get current date
-    const now = new Date();
-    const day = String(now.getDate()).padStart(2, "0");
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const year = now.getFullYear();
-
-    // Count today's orders to generate a sequential number
-    const { count, error } = await supabase
-      .from("bookings")
-      .select("*", { count: "exact", head: true })
-      .eq("date", now.toISOString().split("T")[0]); // filter today's date
-
-    const sequence = count ? count + 1 : 1; // next number
-    const sequenceStr = String(sequence).padStart(4, "0"); // 0001, 0002, etc.
-
-    return `${day}${month}${year}${sequenceStr}`;
-  };
-
-
-  // --- Save booking after payment ---
   // --- Save booking after payment ---
   const handleSubmit = async (payment_id?: string) => {
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("User not logged in");
 
-      // --- Generate Order Number ---
-      const now = new Date();
-      const day = String(now.getDate()).padStart(2, "0");
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const year = now.getFullYear();
-
-      // Count today's orders to generate sequential number
-      const { count, error: countError } = await supabase
-        .from("bookings")
-        .select("*", { count: "exact", head: true })
-        .eq("date", now.toISOString().split("T")[0]);
-
-      if (countError) throw new Error("Failed to generate order number");
-
-      const sequence = count ? count + 1 : 1;
-      const sequenceStr = String(sequence).padStart(4, "0");
-      const orderNumber = `${day}/${month}/${year}/${sequenceStr}`;
-
-      // Format address
       const formattedAddress =
         `${address.flatHousePlot}, Floor ${address.floor}, ${address.buildingApartment}, ${address.streetLocality}, ${address.areaZone}, ${address.cityTown}, ${address.state} - ${address.pincode}` +
         (address.landmark.trim() ? ` (Landmark: ${address.landmark})` : '');
 
-      // Insert booking
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("bookings")
         .insert([
           {
@@ -542,40 +506,38 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
             service_name: service.service_name,
             service_types: serviceTypes,
             date,
-            booking_time: time.length === 5 ? `${time}:00` : time,
+            booking_time: `${time}:00`,
             total_price: totalPrice,
             address: formattedAddress,
             status: payment_id ? "Paid" : "Pending",
             payment_id: payment_id || null,
           },
         ])
-        .select();
+        .select()
+        .throwOnError();
 
-      if (error) {
-        console.error("Supabase insert error:", error);
-        setSubmissionStatus('error');
-        toast({
-          title: "Booking failed",
-          description: "Please check the details and try again.",
-          variant: "destructive",
-        });
-      } else {
-        setSubmissionStatus('success');
-        toast({
-          title: "Booking successful!",
-          description: `Your booking for ${service.service_name} has been confirmed. Order No: ${orderNumber}`,
-          variant: "success",
-        });
-        onClose();
-        router.push("/site/order-tracking");
-      }
+      // ✅ SUCCESS
+      setSubmissionStatus('success');
 
-    } catch (err) {
+      const orderNumber = data?.[0]?.order_no || "N/A";
+
+      toast({
+        title: "Booking successful!",
+        description: `Your booking for ${service.service_name} has been confirmed. Order No: ${orderNumber}`,
+        variant: "success",
+      });
+
+      onClose();
+      router.push("/site/order-tracking");
+
+    } catch (err: any) {
       console.error("Booking failed:", err);
+
       setSubmissionStatus('error');
+
       toast({
         title: "Booking failed",
-        description: "Unexpected error occurred. Please try again.",
+        description: err?.message || "Unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -589,6 +551,18 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
   const availableServices = SERVICE_TYPES.filter(opt => Number(service[opt.priceKey]) > 0);
   // Type guard for nested address errors
   const addressErrors: Partial<Record<keyof ServiceAddress, string>> = typeof errors.address === 'object' && errors.address ? errors.address : {};
+  const to24HourTime = (label: string) => {
+    // "11:30 AM - 12:00 PM" → "11:30"
+    const start = label.split(" - ")[0]; // "11:30 AM"
+    const [time, modifier] = start.split(" "); // ["11:30", "AM"]
+
+    let [hours, minutes] = time.split(":").map(Number);
+
+    if (modifier === "PM" && hours !== 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
+
+    return `${hours.toString().padStart(2, "0")}:${minutes}`;
+  };
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -616,15 +590,42 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
             )}
           </div>
           <div className="space-y-3">
-            {availableServices.map(opt => (
-              <label key={opt.key} className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${serviceTypes.includes(opt.key) ? `bg-white border-2 shadow-md` : 'bg-white border-gray-200 hover:border-gray-400'}`} style={serviceTypes.includes(opt.key) ? { borderColor: PRIMARY_COLOR } : {}}>
-                <div className="flex items-center space-x-3">
-                  <input type="checkbox" checked={serviceTypes.includes(opt.key)} onChange={() => toggleService(opt.key)} className="form-checkbox h-5 w-5 rounded transition duration-150 ease-in-out" style={{ color: PRIMARY_COLOR, borderColor: PRIMARY_COLOR }} />
-                  <span className="text-gray-800 font-medium">{opt.label}</span>
+            {availableServices.map(opt => {
+              const isRepair = opt.key === "Repair";
+              const isSelected = serviceTypes.includes(opt.key);
+
+              return (
+                <div key={opt.key}>
+                  <label
+                    className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all
+        ${isSelected ? `bg-white border-2 shadow-md` : 'bg-white border-gray-200 hover:border-gray-400'}`}
+                    style={isSelected ? { borderColor: PRIMARY_COLOR } : {}}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleService(opt.key)}
+                        className="form-checkbox h-5 w-5 rounded transition duration-150 ease-in-out"
+                        style={{ color: PRIMARY_COLOR, borderColor: PRIMARY_COLOR }}
+                      />
+                      <span className="text-gray-800 font-medium">{opt.label}</span>
+                    </div>
+                    <span className="font-bold" style={{ color: ACCENT_COLOR }}>
+                      ₹{service[opt.priceKey]}
+                    </span>
+                  </label>
+
+                  {/* ✅ Repair info message */}
+                  {isRepair && isSelected && (
+                    <p className="mt-1 ml-9 text-sm text-gray-500">
+                      Inspection fee only. Repair cost will be quoted after on-site assessment
+                    </p>
+                  )}
                 </div>
-                <span className="font-bold" style={{ color: ACCENT_COLOR }}>₹{service[opt.priceKey]}</span>
-              </label>
-            ))}
+              );
+            })}
+
           </div>
           {errors.serviceTypes && <p className="text-red-500 mt-2 text-sm flex items-center"><AlertTriangle className="w-4 h-4 mr-1" />{errors.serviceTypes}</p>}
         </div>
@@ -650,22 +651,25 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
             </label>
             <select
               value={time}
-              onChange={e => { setTime(e.target.value); setErrors(prev => { const { time, ...rest } = prev; return rest; }); }}
+              onChange={(e) => {
+                setTime(e.target.value);
+                // Clear any existing error on change
+                setErrors(prev => {
+                  const { time, ...rest } = prev;
+                  return rest;
+                });
+              }}
               className={`w-full border rounded-lg px-4 py-3 focus:ring-2 transition ${errors.time ? 'border-red-500' : 'border-gray-300'}`}
               style={{ '--tw-ring-color': PRIMARY_COLOR } as React.CSSProperties}
             >
               <option value="">Select Time</option>
-              {getFilteredTimings().length > 0 ? (
-                getFilteredTimings().map(t => (
-                  <option key={t} value={t}>{t}</option>
-                ))
-              ) : (
-                <option disabled>No available timings</option>
-              )}
-
+              {getFilteredTimings().map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
             </select>
             {errors.time && <p className="text-red-500 mt-1 text-sm">{errors.time}</p>}
           </div>
+
 
         </div>
 
@@ -790,14 +794,17 @@ export default function BookServiceModal({ service, isOpen, onClose }: Props) {
 
 
         {/* Total & Confirm */}
-        <div className="p-4 rounded-xl shadow-lg flex items-center justify-between" style={{ backgroundColor: BORDER_COLOR, border: `1px solid ${PRIMARY_COLOR}` }}>
-          <div className="flex flex-col">
-            <p className="text-sm font-semibold text-gray-700">Estimated Total</p>
-            <p className="text-3xl font-extrabold" style={{ color: ACCENT_COLOR }}>{totalPrice > 0 ? `₹${totalPrice}` : '₹0.00'}</p>
+        <div className="p-4 rounded-xl shadow-lg" style={{ backgroundColor: BORDER_COLOR, border: `1px solid ${PRIMARY_COLOR}` }}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col mb-4 sm:mb-0">
+              <p className="text-sm font-semibold text-gray-700">Subtotal: ₹{subtotal}</p>
+              <p className="text-sm font-semibold text-gray-700">Tax (18% GST): ₹{taxAmount}</p>
+              <p className="text-lg font-extrabold" style={{ color: ACCENT_COLOR }}>Total: ₹{totalPrice}</p>
+            </div>
+            <button onClick={handleRazorpayPayment} disabled={isSubmitting || !isFormValid} className={`py-3 px-6 sm:px-8 text-white font-bold rounded-lg shadow-md transition-all duration-300 flex items-center justify-center w-full sm:w-auto ${isSubmitting || !isFormValid ? 'bg-gray-400 cursor-not-allowed' : 'hover:scale-[1.02] hover:shadow-xl'}`} style={{ backgroundColor: PRIMARY_COLOR }}>
+              {isSubmitting ? <><Loader2 className="animate-spin w-5 h-5 mr-2" />Booking...</> : "Confirm Booking"}
+            </button>
           </div>
-          <button onClick={handleRazorpayPayment} disabled={isSubmitting || !isFormValid} className={`py-3 px-8 text-white font-bold rounded-lg shadow-md transition-all duration-300 flex items-center justify-center ${isSubmitting || !isFormValid ? 'bg-gray-400 cursor-not-allowed' : 'hover:scale-[1.02] hover:shadow-xl'}`} style={{ backgroundColor: PRIMARY_COLOR }}>
-            {isSubmitting ? <><Loader2 className="animate-spin w-5 h-5 mr-2" />Booking...</> : "Confirm Booking"}
-          </button>
         </div>
 
         {submissionStatus === 'error' && <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center"><AlertTriangle className="w-5 h-5 mr-2" /><span className="text-sm font-medium">Booking failed. Please check the details and try again.</span></div>}

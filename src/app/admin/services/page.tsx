@@ -325,7 +325,11 @@ export default function ServicesAdminPage() {
   const handleDeleteService = async () => {
     if (!itemToDelete) return;
     setDeletingId(itemToDelete.id);
-    const { error } = await supabase.from("services").delete().eq("id", itemToDelete.id);
+    const { error } = await supabase
+      .from("services")
+      .delete()
+      .eq("id", itemToDelete.id);
+
     if (error) addToast(`Delete failed: ${error.message}`, "error");
     else addToast("Deleted successfully!", "success");
 

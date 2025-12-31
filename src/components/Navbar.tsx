@@ -22,8 +22,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-
-
 type SearchResult = {
   id: string | number;
   name: string;
@@ -60,7 +58,7 @@ export default function FullNavbar() {
       id: "furniture-service",
       name: "Furniture Service",
       image_url: "/furniture-service.jpeg",
-      link: "/site/services?typeId=1",
+      link: "/site/services",
       subServices: [
         "Furniture Installation",
         "Furniture Dismantling",
@@ -129,8 +127,6 @@ export default function FullNavbar() {
     },
   ];
 
-
-
   // Close search dropdown outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -173,10 +169,10 @@ export default function FullNavbar() {
         results.push({ id: "install", name: "Installation Services", type: "service_type", customUrl: "/site/services?typeId=1" });
       }
       if ("repair".startsWith(value) || value.includes("fix") || value.includes("maint")) {
-        results.push({ id: "repair", name: "Repair & Maintenance Services", type: "service_type", customUrl: "/site/services?typeId=2" });
+        results.push({ id: "repair", name: "Repair & Maintenance Services", type: "service_type", customUrl: "/site/services?typeId=3" });
       }
       if ("dismantling".startsWith(value) || value.includes("remove")) {
-        results.push({ id: "dismantle", name: "Dismantling Services", type: "service_type", customUrl: "/site/services?typeId=3" });
+        results.push({ id: "dismantle", name: "Dismantling Services", type: "service_type", customUrl: "/site/services?typeId=2" });
       }
 
       // Database search
@@ -199,7 +195,6 @@ export default function FullNavbar() {
             parent_category: s.category,
           })),
         ];
-
 
         setSearchResults([...results, ...dbResults]);
       } catch (err) {
@@ -244,7 +239,6 @@ export default function FullNavbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -287,9 +281,7 @@ export default function FullNavbar() {
                 </div>
               </div>
             </div>
-
           </Link>
-
 
           {/* SEARCH BOX - Made bigger on mobile */}
           <div className="flex-1 max-w-md md:max-w-lg mx-2 md:mx-4 relative" ref={searchRef}>
@@ -310,8 +302,19 @@ export default function FullNavbar() {
               <div className="absolute top-full mt-2 w-full bg-white border border-gray-200 shadow-2xl rounded-2xl overflow-hidden z-[100] max-h-60 overflow-y-auto">
                 {searchResults.length > 0 ? (
                   searchResults.map((res) => (
-                    <Link key={`${res.type}-${res.id}`} href={res.customUrl || (res.type === "category" ? `/site/category/${res.id}` : `/site/services/${res.id}`)}
-                      className={`flex flex-col px-4 py-3 hover:bg-[#f0f9eb] border-b last:border-0 ${res.type === "service_type" ? "bg-green-50/50" : ""}`}>
+                    <Link
+                      key={`${res.type}-${res.id}`}
+                      href={
+                        res.customUrl ||
+                        (res.type === "category"
+                          ? `/site/services?category=${encodeURIComponent(res.name)}`
+                          : res.type === "subcategory"
+                          ? `/site/services?subcategory=${encodeURIComponent(res.name)}&category=${encodeURIComponent(res.parent_category || "")}`
+                          : `/site/services`
+                        )
+                      }
+                      className={`flex flex-col px-4 py-3 hover:bg-[#f0f9eb] border-b last:border-0 ${res.type === "service_type" ? "bg-green-50/50" : ""}`}
+                    >
                       <div className="flex items-center gap-2">
                         {res.type === "service_type" && <Settings className="w-3 h-3 text-[#8ed26b]" />}
                         <span className={`text-sm font-semibold ${res.type === "service_type" ? "text-[#8ed26b]" : "text-gray-800"}`}>{res.name}</span>
@@ -420,16 +423,17 @@ export default function FullNavbar() {
       </header>
 
       {/* CATEGORY BAR (Home only) */}
-      {pathname === "/site" && (
+      {pathname?.replace(/\/$/, "") === "/site" && (
         <div
           className={`sticky top-[72px] z-40 bg-white border-b border-gray-100 shadow-sm transition-all duration-300 overflow-visible ${categoryShrunk ? "py-6" : "py-4"
             }`}
         >
 
           <div className="max-w-7xl mx-auto px-4 md:px-6">
-            <div className="flex gap-4 md:gap-16 lg:gap-24 transition-all duration-300
-                overflow-x-auto md:overflow-x-visible
-                scrollbar-hide -mx-4 px-4">
+            <div className="flex justify-center gap-6 md:gap-16 lg:gap-24 transition-all duration-300
+  overflow-x-auto md:overflow-x-visible
+  scrollbar-hide -mx-4 px-4">
+
               {staticCategories.map((item) => (
                 <div key={item.id} className="relative group flex flex-col items-center">
                   {/* Category Link */}
@@ -471,17 +475,28 @@ export default function FullNavbar() {
                       <div className="bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden">
                         <div className="px-4 py-3">
                           <ul className="text-gray-700 text-sm space-y-2">
-                            {item.subServices.map((sub, idx) => (
-                              <li key={idx}>
-                                <Link
-                                  href={item.link} // Navigate to the same page as the parent category
-                                  className="hover:text-[#8ed26b] cursor-pointer transition-colors flex items-start gap-2"
-                                >
-                                  <span className="text-[#8ed26b]">•</span>
-                                  <span>{sub}</span>
-                                </Link>
-                              </li>
-                            ))}
+                            {item.subServices.map((sub, idx) => {
+                              let href = item.link; // fallback
+
+                              if (item.id === "furniture-service") {
+                                if (sub === "Furniture Installation") href = "/site/services?typeId=1";
+                                if (sub === "Furniture Dismantling") href = "/site/services?typeId=2";
+                                if (sub === "Furniture Repair") href = "/site/services?typeId=3";
+                              }
+
+                              return (
+                                <li key={idx}>
+                                  <Link
+                                    href={href}
+                                    className="hover:text-[#8ed26b] transition-colors flex items-start gap-2"
+                                  >
+                                    <span className="text-[#8ed26b]">•</span>
+                                    <span>{sub}</span>
+                                  </Link>
+                                </li>
+                              );
+                            })}
+
                           </ul>
                         </div>
                       </div>

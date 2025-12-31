@@ -178,39 +178,38 @@ const SubcategoryCard: React.FC<{ subcategory: Subcategory }> = ({ subcategory }
   );
 
   return (
-    <Link
-      href={`/site/services/${subcategory.id}?category=${encodeURIComponent(
-        subcategory.category
-      )}&subcategory=${encodeURIComponent(subcategory.subcategory)}`}
-      className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-[1.03] flex flex-col h-full"
-    >
-      <div className="relative h-48 w-full bg-gray-200">
-        {subcategory.image_url ? (
-          <Image
-            src={subcategory.image_url}
-            alt={subcategory.subcategory}
-            fill
-            className="object-cover group-hover:scale-110 transition-transform duration-300"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          />
-        ) : (
-          <NoImagePlaceholder />
-        )}
-      </div>
+   <div
+  className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-[1.03] flex flex-col h-full"
+>
+  <div className="relative h-48 w-full bg-gray-200">
+    {subcategory.image_url ? (
+      <Image
+        src={subcategory.image_url}
+        alt={subcategory.subcategory}
+        fill
+        className="object-cover group-hover:scale-110 transition-transform duration-300"
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+      />
+    ) : (
+      <NoImagePlaceholder />
+    )}
+  </div>
 
-      <div className="p-4 flex flex-col flex-grow">
-        <h3 className="text-lg font-bold text-gray-800 line-clamp-2 min-h-[3rem]">
-          {subcategory.subcategory}
-        </h3>
+  <div className="p-4 flex flex-col flex-grow">
+    <h3 className="text-lg font-bold text-gray-800 line-clamp-2 min-h-[3rem]">
+      {subcategory.subcategory}
+    </h3>
 
-        <p className="text-xs text-green-600 font-medium mt-1 uppercase">
-          {subcategory.category}
-        </p>
-        <p className="text-sm text-gray-500 mt-0 line-clamp-2">
-          {subcategory.description || "No description available"}
-        </p>
-      </div>
-    </Link>
+    <p className="text-xs text-green-600 font-medium mt-1 uppercase">
+      {subcategory.category}
+    </p>
+
+    <p className="text-sm text-gray-500 mt-0 line-clamp-2">
+      {subcategory.description || "No description available"}
+    </p>
+  </div>
+</div>
+
   );
 };
 
@@ -455,26 +454,22 @@ const WhyInstaFitCoreSection: React.FC = () => (
         </h2>
 
         <p className="text-gray-500 text-base sm:text-lg mb-8 sm:mb-10">
-          With InstaFitCore, you can easily:
-        </p>
+          With <strong>InstaFitCore</strong>, managing your furniture and home service needs is simple, reliable, and hassle-free:        </p>
 
         <ul className="space-y-4 sm:space-y-5 text-gray-700 text-base sm:text-lg">
           <li className="flex items-start">
             <span className="text-green-600 mr-3">•</span>
-            Book furniture installation & repair services
+            Book professional furniture installation, dismantling, and repair services with certified technicians
           </li>
           <li className="flex items-start">
             <span className="text-green-600 mr-3">•</span>
-            Request customized modular furniture & kitchens
-          </li>
+            Request customized modular furniture and modular kitchen solutions, designed to fit your space and lifestyle          </li>
           <li className="flex items-start">
             <span className="text-green-600 mr-3">•</span>
-            Manage relocations, packers & movers
-          </li>
+            Plan and manage relocations with trusted packers & movers, ensuring safe handling end to end          </li>
           <li className="flex items-start">
             <span className="text-green-600 mr-3">•</span>
-            Track your service requests in one place
-          </li>
+            Track all your service requests in one place, with clear updates and transparency          </li>
         </ul>
       </div>
 
@@ -589,6 +584,115 @@ const TestimonialSection: React.FC = () => {
 };
 
 // ====================================================================
+// NEW: PROJECTS SLIDER COMPONENT (Horizontal Scroll)
+// ====================================================================
+const ProjectsSlider: React.FC = () => {
+  const [projects, setProjects] = useState<any[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const { data } = await supabase
+        .from("our_projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      setProjects(data || []);
+    };
+    fetchProjects();
+  }, []);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const { scrollLeft, clientWidth } = scrollRef.current;
+      // Scroll by one card width
+      const scrollAmount = clientWidth > 768 ? 450 : 300; 
+      const scrollTo = direction === "left" ? scrollLeft - scrollAmount : scrollLeft + scrollAmount;
+      scrollRef.current.scrollTo({ left: scrollTo, behavior: "smooth" });
+    }
+  };
+
+  if (projects.length === 0) return null;
+
+  return (
+    <section className="py-16 bg-white overflow-hidden">
+      {/* CENTERED HEADER SECTION */}
+      <div className="max-w-7xl mx-auto px-6 mb-12 text-center">
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
+          Our Latest Projects
+        </h2>
+        <p className="text-gray-500 mt-3 text-lg max-w-2xl mx-auto">
+          See the transformations we've delivered for our clients.
+        </p>
+        
+        {/* Centered Navigation Buttons */}
+        <div className="flex justify-center gap-4 mt-8">
+          <button 
+            onClick={() => scroll("left")} 
+            className="p-3 rounded-full border border-gray-200 hover:bg-gray-50 transition shadow-sm bg-white"
+            aria-label="Scroll left"
+          >
+            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button 
+            onClick={() => scroll("right")} 
+            className="p-3 rounded-full border border-gray-200 hover:bg-gray-50 transition shadow-sm bg-white"
+            aria-label="Scroll right"
+          >
+            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* SCROLLABLE CONTAINER */}
+      <div 
+        ref={scrollRef}
+        className="flex gap-6 overflow-x-auto px-6 pb-10 no-scrollbar snap-x snap-mandatory"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {projects.map((project) => (
+          <div 
+            key={project.id} 
+            /* Same width for all cards */
+            className="w-[300px] md:w-[450px] flex-shrink-0 snap-center group"
+          >
+            <div className="relative h-[300px] md:h-[400px] w-full rounded-[2rem] overflow-hidden shadow-lg bg-gray-100 border border-gray-100">
+              
+              {project.media_type === "video" ? (
+                <video 
+                  src={project.media_url} 
+                  className="w-full h-full object-cover" 
+                  autoPlay 
+                  muted 
+                  loop 
+                  playsInline 
+                />
+              ) : (
+                <Image 
+                  src={project.media_url} 
+                  alt={project.title} 
+                  fill 
+                  className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                />
+              )}
+
+              {/* Overlay Text */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-8">
+                <p className="text-white/80 text-sm line-clamp-2 italic leading-relaxed">
+                  {project.description}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+};
+// ====================================================================
 // 9. MAIN HOME PAGE COMPONENT
 // ====================================================================
 // Main component for the home page, orchestrating all sections
@@ -691,36 +795,8 @@ export default function HomePage() {
       {/* --- NEW: TESTIMONIALS SECTION (Dynamic from Supabase) --- */}
       <TestimonialSection />
       <hr className="max-w-6xl mx-auto border-gray-200" />
-
-      {/* --- PROMO BANNER --- */}
-      <section className="py-12 sm:py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="relative h-64 md:h-80 rounded-3xl overflow-hidden shadow-2xl"> {/* Reduced height for mobile */}
-            <Image
-              src="/promo.jpg" // Replace with actual image
-              alt="Promo Banner"
-              fill
-              className="object-cover"
-              sizes="100vw"
-            />
-            <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center px-6 py-10 text-white">
-              <h3 className="text-2xl md:text-4xl font-extrabold mb-3">
-                Limited Time Offer!
-              </h3>
-              <p className="text-base md:text-xl mb-4 md:mb-6">
-                Up to 30% off on select services. Don’t miss out!
-              </p>
-              <Link
-                href="/site/services"
-                className="inline-block px-8 py-3 text-white font-bold rounded-full shadow-lg hover:scale-105 transition-all duration-300 bg-instafitcore-green hover:bg-instafitcore-green-hover"
-              >
-                Shop Now
-              </Link>
-
-            </div>
-          </div>
-        </div>
-      </section>
+{/* --- NEW PROJECTS SLIDER SECTION --- */}
+      <ProjectsSlider />
 
       <hr className="max-w-6xl mx-auto border-gray-200" />
 
@@ -816,7 +892,7 @@ export default function HomePage() {
             <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 max-w-xs sm:max-w-sm w-full">
               <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto rounded-xl bg-gray-50 flex items-center justify-center border border-gray-200 shadow-inner overflow-hidden">
                 <Image
-                  src="/simplylogistics-logo.jpeg"
+                  src="/GETLOGO.png"
                   alt="Simply Logistics Logo"
                   width={160}
                   height={160}
@@ -824,8 +900,8 @@ export default function HomePage() {
                 />
               </div>
               <div className="mt-6">
-                <h3 className="text-xl sm:text-2xl font-bold text-gray-800">SimplyLogistics</h3>
-                <p className="text-gray-500 mt-1">Logistics and Supply Chain</p>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800">Getsettax Consulting</h3>
+                <p className="text-gray-500 mt-1">Accounting & Advisory</p>
                 <span className="inline-block mt-4 bg-instafitcore-green/20 text-instafitcore-green text-sm font-semibold px-4 py-1.5 rounded-full border border-instafitcore-green">
                   Verified Partner
                 </span>
