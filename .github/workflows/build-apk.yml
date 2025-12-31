@@ -1,5 +1,4 @@
-name: Build APK
-
+name: Build Android APK
 on:
   workflow_dispatch: # allows you to run it manually from Actions tab
 
