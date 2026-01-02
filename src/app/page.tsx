@@ -1,11 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import SitePage from './site/page';
 
 export default function Home() {
-  useEffect(() => {
-    window.location.replace('./site/');
-  }, []);
-
-  return <div>Loading InstaFitCore…</div>;
+  return <SitePage />;
 }
