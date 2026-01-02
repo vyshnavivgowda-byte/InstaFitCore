@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 export default function Home() {
   useEffect(() => {
-    window.location.href = "/site/";
+    window.location.replace('./site/');
   }, []);
 
-  return null;
+  return <div>Loading InstaFitCore…</div>;
 }
