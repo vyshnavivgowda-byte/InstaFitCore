@@ -1,20 +1,16 @@
 import ServiceDetailsClient from "./ServiceDetailsClient";
-import { supabase } from "@/lib/supabase-client";
 
-type Params = { id: string };
+type Params = { params: { id: string } };
 
-// Static params
+// ✅ REQUIRED for static export
 export async function generateStaticParams() {
-  const { data: services } = await supabase.from("services").select("id");
-  if (!services) return [];
-  return services.map(service => ({ id: service.id.toString() }));
+  return [
+    { id: "1" },
+    { id: "2" },
+    { id: "3" },
+  ];
 }
 
-// Server component
-export default async function Page({ params }: { params: Params }) {
-  const { id } = params;
-  const { data: subData } = await supabase.from("subcategories").select("*").eq("id", id).single();
-  if (!subData) return <div>Service not found</div>;
-
-  return <ServiceDetailsClient subData={subData} />;
+export default function Page({ params }: Params) {
+  return <ServiceDetailsClient id={params.id} />;
 }

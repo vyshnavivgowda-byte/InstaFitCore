@@ -1,7 +1,12 @@
 'use client';
 
+import SiteLayout from './site/layout';
 import SitePage from './site/page';
 
 export default function Home() {
-  return <SitePage />;
+  return (
+    <SiteLayout>
+      <SitePage />
+    </SiteLayout>
+  );
 }
