@@ -135,6 +135,7 @@ function ServicesPageContent() {
     []
   );
 
+  
   // Filters & Search
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(
     null
@@ -280,11 +281,6 @@ if (categoriesData) {
 
   setSubcategoriesMap(subMap);
 }
-
-
-      }
-
-      setSubcategoriesMap(subMap);
 
       // --- Fetch Services ---
       const { data: serviceData } = await supabase
