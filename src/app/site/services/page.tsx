@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -295,8 +296,9 @@ if (categoriesData) {
       // --- Fetch Reviews & calculate average ratings ---
       const { data: reviewsData } = await supabase
         .from("service_reviews")
-        .select("rating, service_id")
-        .eq("status", "approved");
+.select("rating, service_id")
+.eq("is_approved", true);
+
 
       if (reviewsData) {
         const ratingsMap: Record<number, { sum: number; count: number }> = {};
