@@ -10,7 +10,7 @@ import ModularKitchenRequestForm from "@/components/ModularKitchenRequestForm";
 import ModularFurnitureRequestForm from "@/components/ModularFurnitureRequestForm";
 import PackerMoversRequestForm from "@/components/PackerMoversRequestForm";
 import B2BServicesRequestForm from "@/components/B2BServicesRequestForm";
-
+import Image from "next/image";
 import {
   Wrench,
   Package,
@@ -263,19 +263,24 @@ function ServicesPageContent() {
 
       // --- Fetch Subcategories per Category ---
       // --- Fetch Subcategories per Category (TEXT BASED) ---
-      const subMap: Record<number, Subcategory[]> = {};
+     // --- Fetch Subcategories (ONE QUERY, FIXED) ---
+if (categoriesData) {
+  const { data: allSubs } = await supabase
+    .from("subcategories")
+    .select("*")
+    .eq("is_active", true);
 
-      if (categoriesData) {
-        for (const cat of categoriesData) {
-          const { data: subData } = await supabase
-            .from("subcategories")
-            .select("*")
-            .eq("category", cat.category) // ✅ MATCH TEXT
-            .eq("is_active", true)
-            .order("subcategory", { ascending: true });
+  const subMap: Record<number, Subcategory[]> = {};
 
-          subMap[cat.id] = subData || [];
-        }
+  categoriesData.forEach((cat) => {
+    subMap[cat.id] =
+      allSubs?.filter((s) => s.category === cat.category) || [];
+  });
+
+  setSubcategoriesMap(subMap);
+}
+
+
       }
 
       setSubcategoriesMap(subMap);
@@ -783,11 +788,12 @@ function ServicesPageContent() {
                         {/* IMAGE BLOCK */}
                         <div className="w-full h-40 bg-gray-100 rounded-xl overflow-hidden mb-4 relative">
                           {service.image_url ? (
-                            <img
-                              src={service.image_url}
-                              className="w-full h-full object-cover"
-                              alt=""
-                            />
+                           <Image
+  src={service.image_url}
+  alt={service.service_name}
+  fill
+  className="object-cover"
+/>
                           ) : (
                             <div className="h-full flex flex-col items-center justify-center text-gray-400">
                               <Package className="w-8 h-8" />
