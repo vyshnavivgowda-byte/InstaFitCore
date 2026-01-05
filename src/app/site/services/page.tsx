@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -23,6 +22,8 @@ import {
   ShoppingCart,
   Star,
 } from "lucide-react";
+
+export const dynamic = "force-dynamic";
 
 // --- TYPES ---
 type ServiceItem = {
